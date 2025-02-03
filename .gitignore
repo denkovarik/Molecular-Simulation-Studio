@@ -1,0 +1,29 @@
+# Ignore compiled object files
+*.o
+*.obj
+
+# Ignore executable files
+*.exe
+
+# Ignore IDE and editor configuration files
+.vscode/
+.idea/
+
+# Ignore build directories
+build/
+Debug/
+Release/
+
+# Ignore package manager files
+CMakeCache.txt
+cmake_install.cmake
+
+# Ignore operating system-specific files
+.DS_Store  # macOS
+Thumbs.db  # Windows
+ehthumbs.db  # Windows
+Desktop.ini  # Windows
+
+# Ignore temporary files
+*.tmp
+*.bak
