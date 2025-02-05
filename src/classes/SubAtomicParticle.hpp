@@ -17,6 +17,9 @@ class SubAtomicParticle
         std::vector<double> getVelocity() const;
         std::vector<double> getForces() const;
         void setForces(std::vector<double>& force);
+        
+        // Update
+        void update(double deltaTime);
 
     private:
         double mass_;

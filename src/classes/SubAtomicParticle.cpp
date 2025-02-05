@@ -21,6 +21,16 @@ std::vector<double> SubAtomicParticle::getPosition() const { return position_; }
 std::vector<double> SubAtomicParticle::getVelocity() const { return velocity_; }
 std::vector<double> SubAtomicParticle::getForces() const { return forces_; }
 
-void SubAtomicParticle::setForces(std::vector<double>& forces) {
+void SubAtomicParticle::update(double deltaTime)
+{
+    int numDimensions = position_.size();
+    for(int i = 0; i < numDimensions; i++)
+    {
+        position_[i] += (velocity_[i] * deltaTime);
+    }
+}
+
+void SubAtomicParticle::setForces(std::vector<double>& forces) 
+{
     forces_ = forces;
 }
