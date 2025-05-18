@@ -1,4 +1,5 @@
 #include "src/classes/SubAtomicParticle.hpp"
+#include "src/classes/Simulation.hpp"
 #include <iostream>
 #include <vector>
 
