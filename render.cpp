@@ -1,3 +1,8 @@
+// Usage:
+//  g++ -o render render.cpp -I/usr/include -I/usr/include/GL -L/usr/lib -lglfw -lGL -lGLEW -lGLU -lm -lX11 -lXxf86vm -lXrandr -lpthread -ldl -lXinerama -lXcursor
+//  ./render
+
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
