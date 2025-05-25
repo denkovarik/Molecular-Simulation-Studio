@@ -12,6 +12,8 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 // Vertex Shader
 const char* vertexShaderSource = R"(
@@ -89,13 +91,26 @@ void generateSphere(float radius, int sectors, int stacks, std::vector<float>& v
     }
 }
 
-struct Proton {
-    glm::vec3 protonVelocity;       // Position vector
-    glm::vec3 protonPosition;      // Velocity vector
-    glm::vec3 force;               // Force vector
+class Proton {
+public:
+    glm::vec3 velocity;
+    glm::vec3 position;
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
     float radius = 0.1f;
+    float mass = 1.0f;
+    
+    Proton() {};
+    void applyForce(glm::vec3 &force) {
+        // Update velocity
+        glm::vec3 a = force / mass; // Calc acceleration
+        // v = v_initial + a * t
+        velocity = velocity + a;  // t assumed to always be 1
+    };
+    
+    void updatePosition() {
+        position += velocity;
+    }
 };
 
 void updatePosition(Proton& p, float& deltaTime) {
@@ -106,28 +121,38 @@ void updatePosition(Proton& p, float& deltaTime) {
     const float frontWallZ = 2.0f;
     const float backWallZ = -5.0f;
     
-    if(p.protonPosition.x + p.radius > rightWallX) {
-        p.protonVelocity.x *= -1.0f;
+    p.updatePosition();
+    
+    glm::vec3 force = glm::vec3(0.0f, 0.0f, 0.0f);
+    
+    if(p.velocity.x > 0 && p.position.x + p.radius > rightWallX) {
+        force.x = p.mass * -2.0 * p.velocity.x;
+        p.applyForce(force);
     }
-    else if(p.protonPosition.x - p.radius < leftWallX) {
-        p.protonVelocity.x *= -1.0f;
+    else if(p.velocity.x < 0 && p.position.x - p.radius < leftWallX) {
+        force.x = p.mass * -2.0 * p.velocity.x;
+        p.applyForce(force);
     }
     
-    if(p.protonPosition.y + p.radius > ceilingY) {
-        p.protonVelocity.y *= -1.0f;
+    if(p.velocity.y > 0 && p.position.y + p.radius > ceilingY) {
+        force.y = p.mass * -2.0 * p.velocity.y;
+        p.applyForce(force);
     }
-    else if(p.protonPosition.y - p.radius < floorY) {
-        p.protonVelocity.y *= -1.0f;
-    }
-    
-    if(p.protonPosition.z + p.radius > frontWallZ) {
-        p.protonVelocity.z *= -1.0f;
-    }
-    else if(p.protonPosition.z - p.radius < backWallZ) {
-        p.protonVelocity.z *= -1.0f;
+    else if(p.velocity.y < 0 && p.position.y - p.radius < floorY) {
+        force.y = p.mass * -2.0 * p.velocity.y;
+        p.applyForce(force);
     }
     
-    p.protonPosition += p.protonVelocity * deltaTime;
+    if(p.velocity.z > 0 && p.position.z + p.radius > frontWallZ) {
+        force.z = p.mass * -2.0 * p.velocity.z;
+        p.applyForce(force);
+    }
+    else if(p.velocity.z < 0 && p.position.z - p.radius < backWallZ) {
+        force.z = p.mass * -2.0 * p.velocity.z;
+        p.applyForce(force);
+    }
+    
+    
 }
 
 
@@ -152,11 +177,11 @@ int main() {
 
     GLuint shaderProgram = compileAndLinkShaders(vertexShaderSource, fragmentShaderSource);
 
-    Proton p1 = {
-        glm::vec3(0.0f, 0.0f, 0.0f),  // protonVelocity
-        glm::vec3(0.0f, 0.0f, 0.0f),  // protonPosition
-        glm::vec3(10.0f, 10.0f, 10.0f) // force
-    };
+    Proton p1 = Proton();
+    p1.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
+    p1.position = glm::vec3(0.0f, 0.0f, 0.0f);    
+    
+    glm::vec3 force = glm::vec3(0.01f, 0.01f, 0.0f); // force
 
     generateSphere(p1.radius, 10, 10, p1.vertices, p1.indices);
 
@@ -182,6 +207,8 @@ int main() {
     int count = 0;
 
     while (!glfwWindowShouldClose(window)) {
+        std::cout << p1.velocity.x << ", " << p1.velocity.y << ", " << p1.velocity.z << std::endl;
+        
         glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -192,9 +219,9 @@ int main() {
         lastTimeFrame = glfwGetTime();
     
         // Update velocity and positions
-        if(count < 50) {
+        if(count < 5) {
             count += 1;
-            p1.protonVelocity += p1.force * deltaTime;
+            p1.applyForce(force);
         }
         
         updatePosition(p1, deltaTime);
@@ -202,7 +229,7 @@ int main() {
         // Camera/View/Projection
         glm::mat4 model = glm::mat4(1.0f);
         //glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * 0.5f, glm::vec3(0, 1, 0));
-        model = glm::translate(model, p1.protonPosition);
+        model = glm::translate(model, p1.position);
         glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 4), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
         glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800.f / 600.f, 0.1f, 100.0f);
 
@@ -220,6 +247,7 @@ int main() {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     glDeleteProgram(shaderProgram);
