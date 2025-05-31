@@ -1,5 +1,5 @@
 // Usage:
-//  g++ -o render render.cpp -I/usr/include -I/usr/include/GL -L/usr/lib -lglfw -lGL -lGLEW -lGLU -lm -lX11 -lXxf86vm -lXrandr -lpthread -ldl -lXinerama -lXcursor
+//  g++ -o render render.cpp src/classes/Particle.cpp src/classes/Container.cpp -I/usr/include -I/usr/include/GL -L/usr/lib -lglfw -lGL -lGLEW -lGLU -lm -lX11 -lXxf86vm -lXrandr -lpthread -ldl -lXinerama -lXcursor
 //  ./render
 
 
@@ -14,6 +14,7 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include "./src/classes/Container.hpp"
 
 // Vertex Shader
 const char* vertexShaderSource = R"(
@@ -91,71 +92,6 @@ void generateSphere(float radius, int sectors, int stacks, std::vector<float>& v
     }
 }
 
-class Proton {
-public:
-    glm::vec3 velocity;
-    glm::vec3 position;
-    std::vector<float> vertices;
-    std::vector<unsigned int> indices;
-    float radius = 0.1f;
-    float mass = 1.0f;
-    
-    Proton() {};
-    void applyForce(glm::vec3 &force) {
-        // Update velocity
-        glm::vec3 a = force / mass; // Calc acceleration
-        // v = v_initial + a * t
-        velocity = velocity + a;  // t assumed to always be 1
-    };
-    
-    void updatePosition() {
-        position += velocity;
-    }
-};
-
-void updatePosition(Proton& p, float& deltaTime) {
-    const float rightWallX = 2.23f;
-    const float leftWallX = -2.23f;
-    const float ceilingY = 1.65f;
-    const float floorY = -1.65f;
-    const float frontWallZ = 2.0f;
-    const float backWallZ = -5.0f;
-    
-    p.updatePosition();
-    
-    glm::vec3 force = glm::vec3(0.0f, 0.0f, 0.0f);
-    
-    if(p.velocity.x > 0 && p.position.x + p.radius > rightWallX) {
-        force.x = p.mass * -2.0 * p.velocity.x;
-        p.applyForce(force);
-    }
-    else if(p.velocity.x < 0 && p.position.x - p.radius < leftWallX) {
-        force.x = p.mass * -2.0 * p.velocity.x;
-        p.applyForce(force);
-    }
-    
-    if(p.velocity.y > 0 && p.position.y + p.radius > ceilingY) {
-        force.y = p.mass * -2.0 * p.velocity.y;
-        p.applyForce(force);
-    }
-    else if(p.velocity.y < 0 && p.position.y - p.radius < floorY) {
-        force.y = p.mass * -2.0 * p.velocity.y;
-        p.applyForce(force);
-    }
-    
-    if(p.velocity.z > 0 && p.position.z + p.radius > frontWallZ) {
-        force.z = p.mass * -2.0 * p.velocity.z;
-        p.applyForce(force);
-    }
-    else if(p.velocity.z < 0 && p.position.z - p.radius < backWallZ) {
-        force.z = p.mass * -2.0 * p.velocity.z;
-        p.applyForce(force);
-    }
-    
-    
-}
-
-
 int main() {
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW\n";
@@ -177,13 +113,19 @@ int main() {
 
     GLuint shaderProgram = compileAndLinkShaders(vertexShaderSource, fragmentShaderSource);
 
-    Proton p1 = Proton();
-    p1.velocity = glm::vec3(0.0f, 0.0f, 0.0f);
-    p1.position = glm::vec3(0.0f, 0.0f, 0.0f);    
+    Container c1 = Container();
+    c1.rightWallX = 2.23f;
+    c1.leftWallX = -2.23f;
+    c1.ceilingY = 1.65f;
+    c1.floorY = -1.65f;
+    c1.frontWallZ = 2.0f;
+    c1.backWallZ = -5.0f;
     
-    glm::vec3 force = glm::vec3(0.01f, 0.01f, 0.0f); // force
+    c1.particles.push_back(Particle(1.0f, 0.1f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f)));  
+    
+    glm::vec3 force = glm::vec3(0.01f, 0.01f, 0.01f); // force
 
-    generateSphere(p1.radius, 10, 10, p1.vertices, p1.indices);
+    generateSphere(c1.particles[0].radius, 10, 10, c1.particles[0].vertices, c1.particles[0].indices);
 
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -192,10 +134,10 @@ int main() {
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, p1.vertices.size() * sizeof(float), p1.vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, c1.particles[0].vertices.size() * sizeof(float), c1.particles[0].vertices.data(), GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, p1.indices.size() * sizeof(unsigned int), p1.indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, c1.particles[0].indices.size() * sizeof(unsigned int), c1.particles[0].indices.data(), GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -206,9 +148,7 @@ int main() {
     
     int count = 0;
 
-    while (!glfwWindowShouldClose(window)) {
-        std::cout << p1.velocity.x << ", " << p1.velocity.y << ", " << p1.velocity.z << std::endl;
-        
+    while (!glfwWindowShouldClose(window)) {        
         glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -221,15 +161,16 @@ int main() {
         // Update velocity and positions
         if(count < 5) {
             count += 1;
-            p1.applyForce(force);
+            c1.particles[0].applyForce(force);
         }
         
-        updatePosition(p1, deltaTime);
+        c1.checkWallCollisions();
+        c1.particles[0].updatePosition();
         
         // Camera/View/Projection
         glm::mat4 model = glm::mat4(1.0f);
         //glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * 0.5f, glm::vec3(0, 1, 0));
-        model = glm::translate(model, p1.position);
+        model = glm::translate(model, c1.particles[0].position);
         glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 4), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
         glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800.f / 600.f, 0.1f, 100.0f);
 
@@ -243,7 +184,7 @@ int main() {
         glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"), 1.0f, 1.0f, 1.0f);
 
         //glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, p1.indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, c1.particles[0].indices.size(), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
