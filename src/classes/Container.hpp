@@ -15,6 +15,8 @@ public:
     float backWallZ = -2.0f;
     std::vector<Particle> particles;
     
+    bool particlesCollide(Particle& a, Particle& b);
+    void resolveParticleCollisions();
     void checkWallCollisions();
 };
 
