@@ -1,6 +1,6 @@
 // Usage:
-//  g++ -o render render.cpp src/classes/Particle.cpp src/classes/Container.cpp -I/usr/include -I/usr/include/GL -L/usr/lib -lglfw -lGL -lGLEW -lGLU -lm -lX11 -lXxf86vm -lXrandr -lpthread -ldl -lXinerama -lXcursor
-//  ./render
+//  g++ -o render.exe render.cpp src/classes/Particle.cpp src/classes/Container.cpp -I/usr/include -I/usr/include/GL -L/usr/lib -lglfw -lGL -lGLEW -lGLU -lm -lX11 -lXxf86vm -lXrandr -lpthread -ldl -lXinerama -lXcursor
+//  ./render.exe
 
 
 #include <GL/glew.h>
@@ -12,6 +12,7 @@
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <random>
 #include <thread>
 #include <chrono>
 #include "./src/classes/Container.hpp"
@@ -101,7 +102,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Bouncing Ball", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Bouncing Balls", nullptr, nullptr);
     if (!window) {
         std::cerr << "Failed to create GLFW window\n";
         glfwTerminate();
@@ -121,70 +122,103 @@ int main() {
     c1.frontWallZ = 2.0f;
     c1.backWallZ = -5.0f;
     
-    c1.particles.push_back(Particle(1.0f, 0.1f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f)));  
-    
-    glm::vec3 force = glm::vec3(0.01f, 0.01f, 0.01f); // force
+    int numParticles = 75;
 
-    generateSphere(c1.particles[0].radius, 10, 10, c1.particles[0].vertices, c1.particles[0].indices);
+    // Seed with random device
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    
+    // Generate Particles
+    while(c1.particles.size() < numParticles) {
+        // Define the distribution
+        std::uniform_real_distribution<float> x_pos_distrib(c1.leftWallX + 0.2, c1.rightWallX - 0.2);
+        std::uniform_real_distribution<float> y_pos_distrib(c1.floorY + 0.2, c1.ceilingY - 0.2);
+        std::uniform_real_distribution<float> z_pos_distrib(c1.backWallZ + 0.2, c1.frontWallZ - 0.2);
+        std::uniform_real_distribution<float> vel_distrib(-0.1, 0.1);
+        
+        bool done = false;
+        
+        while(!done) {
+            // Generate Particle
+            glm::vec3 position = glm::vec3(x_pos_distrib(gen), y_pos_distrib(gen), z_pos_distrib(gen));
+            glm::vec3 velocity = glm::vec3(vel_distrib(gen), vel_distrib(gen), vel_distrib(gen));
+                        
+            Particle newParticle = Particle(1.0f, 0.1f, position, velocity);
+            
+            bool collision = false;
+            
+            for(int j = 0; j < c1.particles.size() && !collision; j++) {
+                if(c1.particlesCollide(newParticle, c1.particles[j])) {
+                    collision = true;
+                }
+            }
+            
+            if(!collision) {
+                c1.particles.push_back(newParticle); 
+                done = true;
+            }
+        }
+    }
 
     GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    for(int i = 0; i < c1.particles.size(); i++) {  
+        generateSphere(c1.particles[i].radius, 10, 10, c1.particles[i].vertices, c1.particles[i].indices);
+ 
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
 
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, c1.particles[0].vertices.size() * sizeof(float), c1.particles[0].vertices.data(), GL_STATIC_DRAW);
+        glBindVertexArray(VAO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, c1.particles[i].vertices.size() * sizeof(float), c1.particles[i].vertices.data(), GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, c1.particles[0].indices.size() * sizeof(unsigned int), c1.particles[0].indices.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, c1.particles[i].indices.size() * sizeof(unsigned int), c1.particles[i].indices.data(), GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
 
-    glEnable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
+    }
     
     float lastTimeFrame = glfwGetTime();  
     
     int count = 0;
 
     while (!glfwWindowShouldClose(window)) {        
-        glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
-        
-               
-        float deltaTime = glfwGetTime() - lastTimeFrame;
-        lastTimeFrame = glfwGetTime();
-    
-        // Update velocity and positions
-        if(count < 5) {
-            count += 1;
-            c1.particles[0].applyForce(force);
+            glUseProgram(shaderProgram);
+            
+                   
+            float deltaTime = glfwGetTime() - lastTimeFrame;
+            lastTimeFrame = glfwGetTime();
+            
+        for(int i = 0; i < c1.particles.size(); i++) {                
+            c1.resolveParticleCollisions();
+            c1.checkWallCollisions();
+            c1.particles[i].updatePosition();
+            
+            // Camera/View/Projection
+            glm::mat4 model = glm::mat4(1.0f);
+            //glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * 0.5f, glm::vec3(0, 1, 0));
+            model = glm::translate(model, c1.particles[i].position);
+            glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 4), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+            glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800.f / 600.f, 0.1f, 100.0f);
+
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+            glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
+
+            // Contour settings
+            glUniform1f(glGetUniformLocation(shaderProgram, "contourSpacing"), 0.1f);
+            glUniform1f(glGetUniformLocation(shaderProgram, "verticalSpacing"), 0.05f);
+            glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"), 1.0f, 1.0f, 1.0f);
+
+            //glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, c1.particles[i].indices.size(), GL_UNSIGNED_INT, 0);
         }
-        
-        c1.checkWallCollisions();
-        c1.particles[0].updatePosition();
-        
-        // Camera/View/Projection
-        glm::mat4 model = glm::mat4(1.0f);
-        //glm::mat4 model = glm::rotate(glm::mat4(1.0f), (float)glfwGetTime() * 0.5f, glm::vec3(0, 1, 0));
-        model = glm::translate(model, c1.particles[0].position);
-        glm::mat4 view = glm::lookAt(glm::vec3(0, 0, 4), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-        glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800.f / 600.f, 0.1f, 100.0f);
-
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
-
-        // Contour settings
-        glUniform1f(glGetUniformLocation(shaderProgram, "contourSpacing"), 0.1f);
-        glUniform1f(glGetUniformLocation(shaderProgram, "verticalSpacing"), 0.05f);
-        glUniform3f(glGetUniformLocation(shaderProgram, "lightDir"), 1.0f, 1.0f, 1.0f);
-
-        //glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, c1.particles[0].indices.size(), GL_UNSIGNED_INT, 0);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
