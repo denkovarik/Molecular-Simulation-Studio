@@ -114,15 +114,9 @@ int main() {
 
     GLuint shaderProgram = compileAndLinkShaders(vertexShaderSource, fragmentShaderSource);
 
-    Container c1 = Container();
-    c1.rightWallX = 2.23f;
-    c1.leftWallX = -2.23f;
-    c1.ceilingY = 1.65f;
-    c1.floorY = -1.65f;
-    c1.frontWallZ = 2.0f;
-    c1.backWallZ = -5.0f;
+    Container c1 = Container(2.23f, -2.23f, 1.65f, -1.65f, 2.0f, -5.0f);
     
-    int numParticles = 75;
+    int numParticles = 125;
 
     // Seed with random device
     std::random_device rd;
@@ -186,16 +180,14 @@ int main() {
     int count = 0;
 
     while (!glfwWindowShouldClose(window)) {        
-            glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.9f, 0.9f, 0.9f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glUseProgram(shaderProgram);
+        glUseProgram(shaderProgram);
             
-                   
-            float deltaTime = glfwGetTime() - lastTimeFrame;
-            lastTimeFrame = glfwGetTime();
-            
-        for(int i = 0; i < c1.particles.size(); i++) {                
+        for(int i = 0; i < c1.particles.size(); i++) {    
+            c1.assignParticles2Grid();
+        
             c1.resolveParticleCollisions();
             c1.checkWallCollisions();
             c1.particles[i].updatePosition();
@@ -222,7 +214,14 @@ int main() {
 
         glfwSwapBuffers(window);
         glfwPollEvents();
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        
+        float deltaTime = glfwGetTime() - lastTimeFrame;
+        lastTimeFrame = glfwGetTime();
+        
+        int waitTime = 20 - deltaTime * 1000;
+        if(waitTime > 0) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(waitTime));
+        }
     }
 
     glDeleteProgram(shaderProgram);
