@@ -13,6 +13,8 @@ sudo apt install libglm-dev
 
 sudo apt install libxxf86vm-dev libxinerama-dev libxcursor-dev
 
+sudo apt install libglew-dev
+
 # OpenGL
 sudo apt-get install freeglut3-dev
 
