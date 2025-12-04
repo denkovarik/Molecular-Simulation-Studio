@@ -1,21 +1,22 @@
+// src/classes/Simulation.hpp
 #ifndef SIMULATION_HPP
 #define SIMULATION_HPP
 
-#include "SubAtomicParticle.hpp"
+#include "config.hpp"
+#include "Container.hpp"
+#include "Particle.hpp"
 #include <vector>
 
 class Simulation {
-    public:
-        Simulation();
+public:
+    explicit Simulation(const Config& cfg);
 
-        void addParticle(SubAtomicParticle particle);  
+    void update(float dt);
 
-        void update(double deltaTime);
+    const std::vector<Particle>& getParticles() const { return container.particles; }
 
-        std::vector<SubAtomicParticle> getParticles();
-    
-    private:
-        std::vector<SubAtomicParticle> particles_;  // Vector of particles in the simulation
+private:
+    Container container;
 };
 
-#endif  // SIMULATION_HPP
+#endif // SIMULATION_HPP
