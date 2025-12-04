@@ -1,10 +1,10 @@
+// src/classes/Container.hpp (updated for const in particlesCollide)
 #ifndef CONTAINER_HPP
 #define CONTAINER_HPP
 
 #include <glm/glm.hpp>
 #include "Particle.hpp"
 #include <vector>
-
 
 class Cell {
 public:
@@ -14,17 +14,16 @@ public:
     float yMax = 1.0f;
     float zMin = 0.0f;
     float zMax = 1.0f;
-    std::vector<int> particleIndies;  // Indies of the particles 
-    
-    Cell(float maxX, float minX, float maxY, float minY, float maxZ, float minZ);
-};
+    std::vector<int> particleIndies; // Indies of the particles
 
+    Cell(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
+};
 
 class Grid {
 public:
     float cell_axis_len = 0.1;
     std::vector<std::vector<std::vector<Cell>>> theMatrix;
-    
+
     int getGridXMin(int x, int range);
     int getGridXMax(int x, int range);
     int getGridYMin(int y, int range);
@@ -32,7 +31,6 @@ public:
     int getGridZMin(int z, int range);
     int getGridZMax(int z, int range);
 };
-
 
 class Container {
 public:
@@ -44,15 +42,15 @@ public:
     float backWallZ = -2.0f;
     std::vector<Particle> particles;
     Grid theGrid;
-    
+
     Container();
     Container(float maxX, float minX, float maxY, float minY, float maxZ, float minZ);
-    
+
     void constructGrid();
     void assignParticles2Grid();
     std::vector<int> computeGridIndex(Particle& particle);
     void clearGrid();
-    bool particlesCollide(Particle& a, Particle& b);
+    bool particlesCollide(const Particle& a, const Particle& b);  // Changed to const references
     void resolveParticleCollision(Particle& a, Particle& b);
     void resolveParticleCollisions();
     void checkWallCollisions();
