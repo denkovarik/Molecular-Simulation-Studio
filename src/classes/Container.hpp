@@ -48,7 +48,7 @@ public:
 
     void constructGrid();
     void assignParticles2Grid();
-    std::vector<int> computeGridIndex(Particle& particle);
+    std::vector<size_t> computeGridIndex(Particle& particle);
     void clearGrid();
     bool particlesCollide(const Particle& a, const Particle& b);  // Changed to const references
     void resolveParticleCollision(Particle& a, Particle& b);

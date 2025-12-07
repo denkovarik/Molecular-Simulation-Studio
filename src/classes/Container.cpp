@@ -61,44 +61,38 @@ void Container::constructGrid() {
 void Container::assignParticles2Grid() {
     clearGrid();
     
-    for(int i = 0; i < particles.size(); i++) {        
-        std::vector<int> gridIndex = computeGridIndex(particles[i]);
+    for (size_t i = 0; i < particles.size(); ++i) {
+        std::vector<size_t> gridIndex = computeGridIndex(particles[i]);
         
         theGrid.theMatrix[gridIndex[0]][gridIndex[1]][gridIndex[2]].particleIndies.push_back(i);
     }
 }
 
-std::vector<int> Container::computeGridIndex(Particle& particle) {
-    int x = (fabs(leftWallX) + particle.position.x) / theGrid.cell_axis_len;
-    int y = (fabs(floorY) + particle.position.y) / theGrid.cell_axis_len;
-    int z = (fabs(backWallZ) + particle.position.z) / theGrid.cell_axis_len;
+std::vector<size_t> Container::computeGridIndex(Particle& particle) {
+    size_t x = static_cast<size_t>((fabs(leftWallX) + particle.position.x) / theGrid.cell_axis_len);
+    size_t y = static_cast<size_t>((fabs(floorY) + particle.position.y) / theGrid.cell_axis_len);
+    size_t z = static_cast<size_t>((fabs(backWallZ) + particle.position.z) / theGrid.cell_axis_len);
     
-    if(x < 0) {
-        x = 0;
-    } else if(x >= theGrid.theMatrix.size()) {
+    if (x >= theGrid.theMatrix.size()) {
         x = theGrid.theMatrix.size() - 1;
     }
 
-    if(y < 0) {
-        y = 0;
-    } else if(y >= theGrid.theMatrix[0].size()) {
+    if (y >= theGrid.theMatrix[0].size()) {
         y = theGrid.theMatrix[0].size() - 1;
     }
     
-    if(z < 0) {
-        z = 0;
-    } else if(z >= theGrid.theMatrix[0][0].size()) {
+    if (z >= theGrid.theMatrix[0][0].size()) {
         z = theGrid.theMatrix[0][0].size() - 1;
     }
     
-    std::vector<int> ind{x, y, z};
+    std::vector<size_t> ind{x, y, z};
     return ind;
 }
 
 void Container::clearGrid() {
-    for(int i = 0; i < theGrid.theMatrix.size(); i++) {
-        for(int j = 0; j < theGrid.theMatrix[i].size(); j++) {
-            for(int p = 0; p < theGrid.theMatrix[i][j].size(); p++) {
+    for(int i = 0; (size_t)i < theGrid.theMatrix.size(); i++) {
+        for(int j = 0; (size_t)j < theGrid.theMatrix[i].size(); j++) {
+            for(int p = 0; (size_t)p < theGrid.theMatrix[i][j].size(); p++) {
                 theGrid.theMatrix[i][j][p].particleIndies.clear();
             }        
         }
@@ -150,33 +144,58 @@ void Container::resolveParticleCollision(Particle& a, Particle& b) {
 }
 
 void Container::resolveParticleCollisions() {
-    std::set<std::pair<int, int>> collisions;
-    for (int i = 0; i < particles.size(); ++i) {
-        std::vector<int> gridIndex = computeGridIndex(particles[i]);
-        
-        int xMin = theGrid.getGridXMin(gridIndex[0], 1);
-        int xMax = theGrid.getGridXMax(gridIndex[0], 1);
-        int yMin = theGrid.getGridYMin(gridIndex[1], 1);
-        int yMax = theGrid.getGridYMax(gridIndex[1], 1);
-        int zMin = theGrid.getGridZMin(gridIndex[2], 1);
-        int zMax = theGrid.getGridZMax(gridIndex[2], 1);
-        
-        for(int x = xMin; x < xMax; x++) {
-            for(int y = yMin; y < yMax; y++) {
-                for(int z = zMin; z < zMax; z++) {
-                    for(int p = 0; p < theGrid.theMatrix[x][y][z].particleIndies.size(); p++) {
-                        int j = theGrid.theMatrix[x][y][z].particleIndies[p];
-                        if(particlesCollide(particles[i], particles[j])) {
-                            std::pair<int, int> collision = std::pair<int, int>(std::min(i, j), std::max(i, j));
-                            if(collisions.find(collision) == collisions.end()) {
-                                resolveParticleCollision(particles[i], particles[j]);
-                                collisions.insert(collision);
-                            }
-                        }
-                    }
+    // Precompute all 27 possible offsets for 3x3x3 neighborhood
+    const int offsets[27][3] = {
+        {-1, -1, -1}, {-1, -1, 0}, {-1, -1, 1},
+        {-1,  0, -1}, {-1,  0, 0}, {-1,  0, 1},
+        {-1,  1, -1}, {-1,  1, 0}, {-1,  1, 1},
+        { 0, -1, -1}, { 0, -1, 0}, { 0, -1, 1},
+        { 0,  0, -1}, { 0,  0, 0}, { 0,  0, 1},
+        { 0,  1, -1}, { 0,  1, 0}, { 0,  1, 1},
+        { 1, -1, -1}, { 1, -1, 0}, { 1, -1, 1},
+        { 1,  0, -1}, { 1,  0, 0}, { 1,  0, 1},
+        { 1,  1, -1}, { 1,  1, 0}, { 1,  1, 1}
+    };
+
+    const size_t numOffsets = 27;
+    const size_t gridXSize = theGrid.theMatrix.size();
+    const size_t gridYSize = (gridXSize > 0) ? theGrid.theMatrix[0].size() : 0;
+    const size_t gridZSize = (gridYSize > 0) ? theGrid.theMatrix[0][0].size() : 0;
+
+    for (size_t i = 0; i < particles.size(); ++i) {
+        std::vector<size_t> gridIndex = computeGridIndex(particles[i]);
+
+        // Single loop over fixed offsets instead of 3 nested dimensional loops
+        for (size_t k = 0; k < numOffsets; ++k) {
+            int dx = offsets[k][0];
+            int dy = offsets[k][1];
+            int dz = offsets[k][2];
+
+            // Compute neighbor indices with overflow/underflow checks
+            // Use signed int for calculation to handle negative offsets safely
+            ptrdiff_t nx = static_cast<ptrdiff_t>(gridIndex[0]) + dx;
+            ptrdiff_t ny = static_cast<ptrdiff_t>(gridIndex[1]) + dy;
+            ptrdiff_t nz = static_cast<ptrdiff_t>(gridIndex[2]) + dz;
+
+            // Skip invalid cells
+            if (nx < 0 || nx >= static_cast<ptrdiff_t>(gridXSize) ||
+                ny < 0 || ny >= static_cast<ptrdiff_t>(gridYSize) ||
+                nz < 0 || nz >= static_cast<ptrdiff_t>(gridZSize)) {
+                continue;
+            }
+
+            const auto& cellIndies = theGrid.theMatrix[nx][ny][nz].particleIndies;
+
+            // Inner loop over particles in the neighbor cell
+            for (size_t p = 0; p < cellIndies.size(); ++p) {
+                size_t j = cellIndies[p];
+                if (j <= i) continue;  // Skip self and duplicates (ensures pairs are unique)
+
+                if (particlesCollide(particles[i], particles[j])) {
+                    resolveParticleCollision(particles[i], particles[j]);
                 }
-            }   
-        } 
+            }
+        }
     }
 }
 
@@ -190,7 +209,7 @@ int Grid::getGridXMin(int x, int range) {
 
 int Grid::getGridXMax(int x, int range) {
     int xMax = x + 1;
-    if(xMax >= theMatrix.size()) {
+    if((size_t)xMax >= theMatrix.size()) {
         xMax = x;
     }
     return xMax;
@@ -206,7 +225,7 @@ int Grid::getGridYMin(int y, int range) {
 
 int Grid::getGridYMax(int y, int range) {
     int yMax = y + 1;
-    if(yMax >= theMatrix[0].size()) {
+    if((size_t)yMax >= theMatrix[0].size()) {
         yMax = y;
     }
     return yMax;
@@ -222,14 +241,14 @@ int Grid::getGridZMin(int z, int range) {
 
 int Grid::getGridZMax(int z, int range) {
     int zMax = z + 1;
-    if(zMax >= theMatrix[0][0].size()) {
+    if((size_t)zMax >= theMatrix[0][0].size()) {
         zMax = z;
     }
     return zMax;
 }
 
 void Container::checkWallCollisions() {
-    for(int i = 0; i < particles.size(); i++) {
+    for(int i = 0; (size_t)i < particles.size(); i++) {
         glm::vec3 impulse(0.0f, 0.0f, 0.0f);
         
         // X-axis collision

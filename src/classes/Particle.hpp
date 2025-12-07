@@ -5,10 +5,10 @@
 
 class Particle {
 public:
-    glm::vec3 velocity;
-    glm::vec3 position;
-    float radius = 0.1f;
     float mass = 1.0f;
+    float radius = 0.1f;
+    glm::vec3 position;
+    glm::vec3 velocity;
 
     Particle(glm::vec3 pos, glm::vec3 vel);
     Particle(float mass, float radius, glm::vec3 pos, glm::vec3 vel);

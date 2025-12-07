@@ -2,6 +2,7 @@
 /*
   Molecular Dynamics / Bouncing Balls Simulator
   Now fully modular: Renderer + Simulation + Config
+  
 */
 
 #include "src/config.hpp"
