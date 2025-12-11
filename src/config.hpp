@@ -5,20 +5,20 @@
 
 struct Config {
     // Window
-    int windowWidth = 800;
-    int windowHeight = 600;
+    int windowWidth = 1000;
+    int windowHeight = 1000;
     std::string windowTitle = "Bouncing Balls";
 
     // Container (room)
-    float containerMaxX = 2.23f;
-    float containerMinX = -2.23f;
-    float containerMaxY = 1.65f;
-    float containerMinY = -1.65f;
-    float containerMaxZ = 2.0f;
-    float containerMinZ = -5.0f;
+    float containerMaxX = 10.0f;
+    float containerMinX = -10.0f;
+    float containerMaxY = 10.0f;
+    float containerMinY = -10.0f;
+    float containerMaxZ = 10.0f;
+    float containerMinZ = -10.0f;
 
     // Particles
-    int numParticles = 500;
+    int numParticles = 1000;
     float particleMass = 1.0f;
     float particleRadius = 0.1f;
     float velocityRange = 5.0f;  // For random vel_distrib(-range, range)
