@@ -29,6 +29,11 @@ struct Config {
 
     // Simulation
     float targetFPS = 50.0f;  // For throttling
+    
+    bool enable_chemistry = false;  // New: Toggle chemical forces (e.g., LJ)
+    float lj_epsilon = 0.5f;       // Depth of potential well (tune for attraction strength)
+    float lj_sigma = 0.74f;        // Equilibrium distance for H-H 
+    // Add more chemistry params later (e.g., per-atom types)
 };
 
 #endif // CONFIG_HPP

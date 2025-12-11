@@ -6,6 +6,7 @@
 #include "Container.hpp"
 #include "Particle.hpp"
 #include <vector>
+#include "config.hpp"
 
 class Simulation {
 public:
@@ -14,9 +15,13 @@ public:
     void update(float dt);
 
     const std::vector<Particle>& getParticles() const { return container.particles; }
+    
+    Container container;
+    Config config;
 
 private:
-    Container container;
+    void computeChemicalForces(float dt);
+
 };
 
 #endif // SIMULATION_HPP

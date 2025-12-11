@@ -12,6 +12,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <GLFW/glfw3.h>
 
 // Optional: simple command-line config override
 Config parseConfig(int argc, char** argv) {
@@ -24,6 +25,7 @@ Config parseConfig(int argc, char** argv) {
         else if (arg == "--width" && i+1 < argc) cfg.windowWidth = std::stoi(argv[++i]);
         else if (arg == "--height" && i+1 < argc) cfg.windowHeight = std::stoi(argv[++i]);
         else if (arg == "--title" && i+1 < argc) cfg.windowTitle = argv[++i];
+        else if (arg == "--enable_chemistry") cfg.enable_chemistry = true;
         // Add more as needed: --mass, --velocity, etc.
     }
     return cfg;
