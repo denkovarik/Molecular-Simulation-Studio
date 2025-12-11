@@ -1,104 +1,103 @@
 # Molecular Simulation Studio
-
 **An interactive, visual molecular dynamics and chemistry simulator**  
 From bouncing balls to real organic and biochemical reactions — built in C++ with OpenGL.
 
 ## Project Vision & Goals
+### Short-Term (Done)
+- Beautiful real-time H + H → H₂ demo with glowing bond
+- Stable classical MD engine with Lennard-Jones + optional damping
+- Bouncing-ball mode and chemistry mode coexist cleanly
+- Fully working, tested, and portfolio-ready
 
-### Short-Term
-- Simulate fundamental organic chemistry reactions with clear visual electron flow  
-  (e.g., H + H → H₂, CH₃Cl + OH⁻ → CH₃OH + Cl⁻, H₂ + ½O₂ → H₂O)
-- Make reaction mechanisms intuitive for students who struggle with 2D arrow-pushing
-- Deliver a beautiful, real-time 3D demo suitable for portfolio and web deployment on a website
-
-### Medium-Term
-- Accurately handle chemical “exceptions” (electronegativity, periodic trends, lone pairs, etc.)
-- Support reactive simulations where bonds form and break dynamically
-- Add simplified quantum-inspired effects (orbital shapes, partial charges, electron density)
+### Medium-Term (Current Focus)
+- Replace "united-atom" model with **explicit protons + electrons** that remain bound during normal motion but can transfer in reactions
+- Visualize real **electron flow** during bond formation and redox
+- Make mechanisms (SN2, addition, elimination, redox) intuitive via moving electron particles
+- Keep everything fast and stable on consumer hardware
 
 ### Long-Term
-- Scale to large biochemical systems (e.g., ATP synthesis, oxidative phosphorylation, enzyme mechanisms)
-- Remain fast enough for interactive or near-real-time use on consumer hardware or in browsers
+- Scale to large biochemical systems (ATP, enzymes, membranes)
+- QM/MM, ReaxFF-style, or ML potentials under the hood
+- WebAssembly deployment
 
 ## High-Level Technical Approach (Chosen Strategy)
+We follow a **phased, data-driven hybrid** strategy:
 
-We are following a **phased, scalable, hybrid strategy** that starts simple and evolves toward quantum accuracy over time:
+| Phase | Core Method                              | Accuracy               | Scalability       | Status       |
+|-------|------------------------------------------|------------------------|-------------------|--------------|
+| 1     | Classical MD + LJ + data-driven rules     | Good for education     | Excellent (10⁶)  | Complete     |
+| 2     | **Explicit protons & electrons** + empirical binding potentials | Chemical realism + electron flow | Very good (10⁴–10⁵) | **Next** |
+| 3     | Reactive force fields (ReaxFF-style) or QM/MM | Bond breaking/forming | Good             | Mid-term     |
+| 4     | ML potentials or quantum interface         | Near-quantum           | Excellent         | Long-term    |
 
-| Phase | Core Method                        | Accuracy | Scalability | When |
-|-------|------------------------------------|----------|-------------|------|
-| 1     | Classical MD + Data-Driven Force Fields | Good for education & most organics | Excellent (10⁴–10⁶ atoms) | Now (starting point) |
-| 2     | Reactive Force Fields (ReaxFF-style) + Empirical Rules | Handles bond breaking/forming | Very good | Next few months |
-| 3     | QM/MM Hybrid (semi-empirical or DFT for reactive region) | Chemical accuracy where needed | Good (10³ atoms) | Mid-term |
-| 4     | ML-accelerated potentials (ANI, SchNet, MACE, etc.) or Quantum Computer interface | Near-quantum accuracy + speed | Excellent | Long-term / future-proof |
+**We are now finishing Phase 1 and moving into Phase 2.**
 
-**We begin with Phase 1** — this gives us immediate results, full control in C++, and a solid foundation to layer more accurate methods later.
+### Current Architecture (Phase 1 – Complete)
+- Atoms = `Particle` objects (united-atom style)
+- Forces: Lennard-Jones 12-6 + optional Coulomb via `Particle::charge`
+- Reactions: simple distance + energy rules
+- Visuals: glowing bonds when atoms get close
 
-### Phase 1 Architecture (Classical + Data-Driven)
+### Phase 2 Architecture (Next Milestone – Explicit Electrons)
+We will **keep protons and electrons as separate objects** (`SubAtomicParticle`) but make them **stable** using **data-driven constraints** instead of raw Coulomb forces:
 
-- Atoms = `Particle` / `SubAtomicParticle` objects with:
-  - Element type (H, C, N, O, …)
-  - Mass, van-der-Waals radius, partial charge
-  - Lennard-Jones parameters (ε, σ) from literature/QM databases
-- Forces calculated every timestep:
-  - Coulomb electrostatics between partial charges
-  - Lennard-Jones 12-6 for Pauli repulsion + dispersion
-  - Optional harmonic bonds/angles/dihedrals (non-reactive or switchable)
-- Reactions triggered by simple, data-driven rules:
-  - Distance + energy thresholds → bond formation/breaking
-  - Activation energies and electronegativity differences from tables
-- Electron “flow” visualized via partial charges, bond lines, or translucent density clouds
+| Feature                         | How we will do it (data-driven)                                 |
+|---------------------------------|-----------------------------------------------------------------|
+| Electrons stay bound to protons   | Harmonic or Morse potentials tuned to real binding energies (13.6 eV for H) |
+| Realistic orbital shapes           | Precomputed Gaussian or Slater-type density blobs that follow nuclei   |
+| Electron transfer in reactions      | When activation energy is met → remove harmonic restraint → electron can jump |
+| Visual electron flow              | Render small glowing spheres or trails that move between atoms         |
+| No explosion / collapse           | Softened Coulomb + strong empirical binding + smaller timesteps      |
 
-This approach is **fast, stable, extensible**, and already fits perfectly into the existing codebase**.
+This gives us:
+- True electron movement (not just partial charges)
+- Ability to show redox, radicals, ionic mechanisms
+- Still fully classical and fast
+- Natural upgrade path to ReaxFF or ML potentials later
 
-### Future Evolution Path
-
-```text
-Phase 1 → Phase 2 → Phase 3 → Phase 4
-Classical + Data   Reactive FF   QM/MM   ML-potentials / Quantum hardware
-    ↑                  ↑           ↑            ↑
-   Fast & scalable    Bonds break Accurate reactions Near-exact + fast
-```
-
-We can replace or augment components **incrementally without rewriting the engine**.  
-Every new layer — whether a better force field, a reactive bond-order model, a QM/MM subsystem, or a machine-learning potential — simply provides more accurate forces or reaction rules while reusing the same particle system, spatial grid, integrator, and OpenGL renderer.
-
-### Current Repository Structure (Summary)
+## Current Repository Structure
 ```text
 src/
 ├── classes/
-│   ├── Particle.hpp / Particle.cpp
-│   ├── SubAtomicParticle.hpp / SubAtomicParticle.cpp
-│   ├── Simulation.hpp / Simulation.cpp
-│   ├── Container.hpp / Container.cpp        # spatial grid + collision handling
-│   └── Renderer.hpp / Renderer.cpp          # OpenGL + sphere rendering
-├── config.hpp
-└── main.cpp
-testing/                                         # Catch2 unit tests
+│   ├── Particle.hpp / Particle.cpp          # Now has Element, charge, force accumulation
+│   ├── SubAtomicParticle.hpp / Particle.cpp # Ready for explicit electrons/protons
+│   ├── Simulation.hpp / Simulation.cpp     # Coulomb + LJ + future binding forces
+│   ├── Container.hpp / Container.cpp       # Grid + collisions (will support sub-particles)
+│   └── Renderer.hpp / Renderer.cpp         # Charge-based coloring, ready for orbitals
+├── config.hpp                            # enable_subatomic flag ready
+├── main.cpp                             # Bouncing balls
+└── main_h2.cpp                         # H₂ demo (currently united-atom)
+testing/                                 # Catch2 tests updated
 ```
-
-
-The code is deliberately modular, well-tested, and ready for the phased upgrades described above.
 
 ## Why This Approach Wins
 
-- Immediate visual results → perfect for portfolio & education
-- Naturally handles chemical “exceptions” via data tables instead of rigid rules
-- Scales to biochemical complexity today (unlike full QM)
-- Clear, low-risk upgrade path to near-quantum accuracy tomorrow
-- Stays 100% in C++ → no Python dependency hell, easy to compile to WebAssembly later
+- **Immediate visual results** → perfect for portfolio & education  
+- **Explicit electrons** → real electron flow during reactions (no other educational simulator does this well)  
+- **Data-driven constraints** → stable even though electrons are separate particles  
+- **Clear, low-risk upgrade path** to full reactive force fields or ML potentials  
+- **100% C++** → WebAssembly ready  
 
-## Contributing & Next Steps
+## Contributing & Next Steps (Updated – December 2025)
 
-1. Extend `Particle` with element types and load parameters from JSON/CSV  
-2. Implement Coulomb + Lennard-Jones forces  
-3. Add simple reactive rules (start with H + H → H₂)  
-4. Visualize bonds and partial charges  
-5. Iterate → reactive organics → biochemistry  
+**Phase 1 is complete.**  
+**Phase 2 (Explicit, Stable Electrons) starts now.**
 
-Join us — let’s build the molecular simulator we all wish we had in class!
+1. Add **harmonic/Morse binding potentials** between protons and their electrons  
+   → Use real data: 13.6 eV binding energy, 0.53 Å equilibrium distance for hydrogen
 
----
-**License**: MIT  
-**Languages**: C++17, GLSL, GLM  
-**Build**: CMake (in progress)  
-**Status**: Active development — Phase 1 underway
+2. Make `config.enable_subatomic = true` **stable and beautiful**  
+   → No more explosions when atoms approach or form bonds
+
+3. Visualize electrons as **small glowing spheres** that orbit protons realistically  
+   → Later evolve into proper orbital shapes (1s, 2p, sp³ hybrids, lone pairs)
+
+4. Implement first **electron-transfer reaction** (e.g. H• + H• → H₂ or Na → Na⁺ + e⁻)
+
+5. Load element-specific parameters from JSON  
+   → mass, radius, LJ σ/ε, ionization energy, orbital data, etc.
+
+6. Add **orbital-shaped density clouds** using 1–4 translucent Gaussians per orbital
+
+After Phase 2 we’ll have the only educational simulator in the world that shows **real moving electrons** forming and breaking bonds — all while staying fast, stable, and fully in C++.
+
