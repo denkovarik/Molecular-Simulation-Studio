@@ -23,9 +23,9 @@ struct Config {
     float particleRadius = 0.1f;
     float velocityRange = 5.0f;
 
-    // init/spawn controls (Option B)
-    bool spawnRandomParticles = true;          // if false, Simulation() won't auto-populate particles
-    int  maxPlacementAttemptsPerParticle = 2000; // prevents infinite loops when packing is impossible
+    // init/spawn controls
+    bool spawnRandomParticles = true;          
+    int  maxPlacementAttemptsPerParticle = 2000; 
 
     // Rendering
     int sphereSectors = 20;
@@ -39,10 +39,17 @@ struct Config {
     float lj_epsilon = 0.5f;
     float lj_sigma = 0.74f;
 
-    // Coulomb (you already added these earlier, keeping here for completeness)
+    // Coulomb 
     bool  enable_coulomb = false;
     float coulomb_k = 10.0f;
     float coulomb_softening = 0.1f;
+    
+    bool enable_subatomic = false;
+    float harmonic_k = 1.0f;
+    float harmonic_eq = 0.53f;
+    float electron_mass = 1.0f;  // AU (added)
+    float proton_mass = 1836.0f;  // AU (added if needed)
+    float activation_barrier = 0.1f;
 };
 
 #endif // CONFIG_HPP
