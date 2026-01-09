@@ -20,12 +20,22 @@ struct ElementData {
     float barrier;
 };
 
+struct Bond {
+    int i = -1;
+    int j = -1;
+    float r0 = 0.74f;
+    float De = 10.0f;
+    float a  = 8.0f;
+    float strength = 1.0f;  
+};
+
 class Simulation {
 public:
     explicit Simulation(const Config& cfg);
     void computeCoulombForces(float dt);
     void update(float dt);
     const std::vector<Particle>& getParticles() const { return container.particles; }
+    std::vector<Bond> bonds;
    
     Container container;
     Config config;
@@ -38,6 +48,8 @@ public:
 
 private:
     void computeChemicalForces(float dt);
+    void tryFormBonds();
+
 };
 
 #endif // SIMULATION_HPP

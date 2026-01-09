@@ -50,6 +50,26 @@ struct Config {
     float electron_mass = 1.0f;  // AU (added)
     float proton_mass = 1836.0f;  // AU (added if needed)
     float activation_barrier = 0.1f;
+    
+    // Bonding (Phase 1: united-atom)
+    bool enable_bonds = false;
+
+    // Distance at which we allow a bond to form (world units)
+    float bond_form_dist = 1.5f;
+
+    // Equilibrium bond length for H2 (world units)
+    float bond_r0 = 0.74f;
+
+    // Morse parameters 
+    float bond_De = 10.0f;   
+    float bond_a  = 8.0f;   
+
+    // Optional: break distance 
+    float bond_break_dist = 2.5f;
+
+    // Optional: damping along bond axis (stability)
+    float bond_axis_damping = 0.05f;
+
 };
 
 #endif // CONFIG_HPP
