@@ -34,7 +34,7 @@ TEST_CXXFLAGS = -Wall -std=c++17 -O0 -g
 TEST_INCLUDES = -I/usr/local/include -I src -I src/classes
 # Note: no Catch2 link libs needed for v2 header-only main
 
-TEST_BINS = test_Container.exe test_Particle.exe test_SubAtomicParticle.exe test_Simulation.exe test_CoulombForce.exe test_Atom.exe
+TEST_BINS = test_Container.exe test_Particle.exe test_SubAtomicParticle.exe test_Simulation.exe test_CoulombForce.exe test_Atom.exe test_BondFormation.exe
 
 
 tests: $(TEST_BINS)
@@ -65,6 +65,11 @@ test_CoulombForce.exe: testing/test_CoulombForce.cpp src/classes/Simulation.cpp 
 	
 test_Atom.exe: testing/test_Atom.cpp src/classes/Atom.cpp src/classes/Particle.cpp src/classes/Atom.cpp src/classes/SubAtomicParticle.cpp
 	$(CXX) $(TEST_CXXFLAGS) $(TEST_INCLUDES) -o $@ $^
+	
+test_BondFormation.exe: testing/test_BondFormation.cpp \
+  src/classes/Simulation.cpp src/classes/Container.cpp src/classes/Particle.cpp \
+  src/classes/Atom.cpp src/classes/SubAtomicParticle.cpp
+	$(CXX) $(TEST_CXXFLAGS) $(TEST_INCLUDES) -o $@ $^
 
 
 # Convenience targets to run one suite
@@ -85,6 +90,9 @@ test_coulomb: test_CoulombForce.exe
 	
 test_atom: test_Atom.exe
 	./test_Atom.exe
+	
+test_BondFormation: test_BondFormation.exe
+	./test_BondFormation.exe
 
 clean-tests:
 	rm -f $(TEST_BINS)
@@ -92,5 +100,5 @@ clean-tests:
 clean:
 	rm -f $(OBJECTS) $(EXECUTABLE) $(TEST_BINS)
 
-.PHONY: all clean clean-tests tests test test_container test_particle test_subatomic test_simulation test_coulomb test_atom
+.PHONY: all clean clean-tests tests test test_container test_particle test_subatomic test_simulation test_coulomb test_atom test_BondFormation
 
