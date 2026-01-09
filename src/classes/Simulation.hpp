@@ -11,6 +11,7 @@ class Simulation {
 public:
     explicit Simulation(const Config& cfg);
 
+    void computeCoulombForces(float dt);
     void update(float dt);
 
     const std::vector<Particle>& getParticles() const { return container.particles; }
