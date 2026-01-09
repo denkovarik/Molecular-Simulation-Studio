@@ -1,3 +1,20 @@
+// testing/test_Atom.cpp
+
+/*
+
+g++ -std=c++17 \
+  -I/usr/local/include/catch2 \
+  -I./src -I./src/classes \
+  testing/test_Atom.cpp \
+  src/classes/Atom.cpp \
+  src/classes/Particle.cpp \
+  src/classes/SubAtomicParticle.cpp \
+  -o test_Atom.exe
+  
+./testing/test_Atom.cpp
+
+*/
+
 #include "SubAtomicParticle.hpp"
 #include <cmath>
 #include <iostream>
@@ -33,4 +50,8 @@ void SubAtomicParticle::update(double deltaTime)
 void SubAtomicParticle::setForces(std::vector<double>& forces) 
 {
     forces_ = forces;
+}
+
+void SubAtomicParticle::setVelocity(const std::vector<double>& vel) {
+    velocity_ = vel;
 }
