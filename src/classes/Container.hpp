@@ -16,7 +16,7 @@ public:
     float zMax = 1.0f;
     std::vector<int> particleIndies; // Indies of the particles
 
-    Cell(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
+    Cell(float maxX, float minX, float maxY, float minY, float maxZ, float minZ);
 };
 
 class Grid {

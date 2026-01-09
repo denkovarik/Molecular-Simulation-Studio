@@ -5,12 +5,12 @@
 #include <set>
 
 
-Cell::Cell(float maxX, float minX, float maxY, float minY, float maxZ, float minZ) {
-    xMin = minX;
+Cell::Cell(float minX, float maxX, float minY, float maxY, float minZ, float maxZ) {
+    xMin = minX; 
     xMax = maxX;
-    yMin = minY;
+    yMin = minY; 
     yMax = maxY;
-    zMin = minZ;
+    zMin = minZ; 
     zMax = maxZ;
 }
 
