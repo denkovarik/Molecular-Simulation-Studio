@@ -1,9 +1,17 @@
-// g++ -std=c++14 -I/usr/local/include/catch2 -L/usr/local/lib -o test_Container.exe testing/test_Container.cpp src/classes/Particle.cpp src/classes/Container.cpp -lCatch2Main -lCatch2
-// ./test_Container.exe
+// testing/test_Container.cpp
 
-#define CATCH_CONFIG_MAIN  // This tells Catch2 to provide a main function
-#include "catch2/catch_all.hpp"
-#include "catch2/catch_approx.hpp"
+/* 
+Usage:
+
+g++ -std=c++14 -I/usr/local/include -o test_Container.exe \
+    testing/test_Container.cpp src/classes/Particle.cpp src/classes/Container.cpp
+
+./test_Container.exe
+
+*/
+
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
 #include "../src/classes/Container.hpp"
 #include <iostream>
 

@@ -1,47 +1,68 @@
-// g++ -std=c++14 -I/usr/local/include/catch2 -L/usr/local/lib -o test_SubAtomicParticle.exe testing/test_SubAtomicParticle.cpp src/classes/SubAtomicParticle.cpp -lCatch2Main -lCatch2
-// ./test_SubAtomicParticle.exe
+// testing/test_SubAtomicParticle.cpp
+/*
+Usage:
 
-#define CATCH_CONFIG_MAIN  // This tells Catch2 to provide a main function
-#include "catch2/catch_all.hpp"
-#include "catch2/catch_approx.hpp"
+g++ -std=c++14 -I/usr/local/include -o test_SubAtomicParticle.exe \
+    testing/test_SubAtomicParticle.cpp src/classes/SubAtomicParticle.cpp
+
+./test_SubAtomicParticle.exe
+
+*/
+
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+
 #include "../src/classes/SubAtomicParticle.hpp"
-#include <iostream>
+#include <vector>
+#include <cmath>
 
-TEST_CASE("SubAtomicParticle constructor") {
-    // Create an instance of SubAtomicParticle
-    std::vector<double> position = {0.0, 0.0, 0.0};
-    std::vector<double> velocity = {1.0, 2.0, 3.0};
-    double mass = 9.109e-31; // Mass of electron in kg
-    double charge = -1.602e-19; // Charge of an electron in Coulombs
-    int spin = 1; // Spin of an electron, corrected to avoid integer division
-
-    SubAtomicParticle particle(mass, position, velocity, charge, spin);
-    
-    // Use Approx for floating point comparison
-    REQUIRE(particle.getCharge() == -1.602e-19);
+static void requireVecApprox(const std::vector<double>& a,
+                             const std::vector<double>& b,
+                             double eps = 1e-12) {
+    REQUIRE(a.size() == b.size());
+    for (size_t i = 0; i < a.size(); ++i) {
+        REQUIRE(a[i] == Approx(b[i]).margin(eps));
+    }
 }
 
-TEST_CASE("Simulation: Update particles with no forces applied to them") 
-{
-    // Create an instance of SubAtomicParticle
+TEST_CASE("SubAtomicParticle constructor sets basic fields") {
     std::vector<double> position = {0.0, 0.0, 0.0};
     std::vector<double> velocity = {1.0, 2.0, 3.0};
-    double mass = 1.6726e-27; // Mass of proton in kg
-    double charge = 1.602e-19; // Charge of an proton in Coulombs
-    int spin = 1 / 2; // Spin of an electron
-    SubAtomicParticle proton = SubAtomicParticle(mass, position, velocity, charge, spin);
-    std::vector<double> initialPosition = proton.getPosition();
 
-    // Update the simulation
-    double deltaTime = 1.0;
-    proton.update(deltaTime);
+    double mass   = 9.109e-31;   // electron mass (kg)
+    double charge = -1.602e-19;  // electron charge (C)
 
-    double expectedPositionX = 1;
-    double expectedPositionY = 2;
-    double expectedPositionZ = 3;
-    
-    std::vector<double> expectedPosition = {1,2,3};    
-    std::vector<double> newPosition = proton.getPosition();
+    // Your class uses int spin; "1/2" would be 0, so pick an explicit int value.
+    // For now we just test it round-trips.
+    int spin = 1;
 
-    REQUIRE(newPosition == expectedPosition);
+    SubAtomicParticle e(mass, position, velocity, charge, spin);
+
+    REQUIRE(e.getMass() == Approx(mass));
+    REQUIRE(e.getCharge() == Approx(charge));
+    REQUIRE(e.getSpin() == spin);
+
+    requireVecApprox(e.getPosition(), position);
+    requireVecApprox(e.getVelocity(), velocity);
+
+    // Forces are initialized to zero in your implementation
+    requireVecApprox(e.getForces(), std::vector<double>{0.0, 0.0, 0.0});
 }
+
+TEST_CASE("SubAtomicParticle update integrates position with constant velocity") {
+    std::vector<double> position = {0.0, 0.0, 0.0};
+    std::vector<double> velocity = {1.0, 2.0, 3.0};
+
+    double mass   = 1.6726e-27;  // proton mass (kg)
+    double charge = 1.602e-19;   // proton charge (C)
+    int spin      = 1;           // placeholder as int
+
+    SubAtomicParticle p(mass, position, velocity, charge, spin);
+
+    double dt = 1.0;
+    p.update(dt);
+
+    // Expected position = x0 + v*dt
+    requireVecApprox(p.getPosition(), std::vector<double>{1.0, 2.0, 3.0}, 1e-12);
+}
+

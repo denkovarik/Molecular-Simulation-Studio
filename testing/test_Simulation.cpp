@@ -1,56 +1,69 @@
-// g++ -std=c++14 -I/usr/local/include/catch2 -L/usr/local/lib -o test_Simulation.exe testing/test_Simulation.cpp src/classes/SubAtomicParticle.cpp src/classes/Simulation.cpp -lCatch2Main -lCatch2
+// testing/test_Simulation.cpp
+/*
+Usage:
 
+g++ -std=c++14 -I/usr/local/include -o test_Simulation.exe \
+  testing/test_Simulation.cpp \
+  src/classes/Simulation.cpp src/classes/Container.cpp src/classes/Particle.cpp
+
+./test_Simulation.exe
+
+*/
+
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
+
+#include "../src/config.hpp"
 #include "../src/classes/Simulation.hpp"
-#include "catch2/catch_all.hpp"
-#include "catch2/catch_approx.hpp"
-#include "../src/classes/SubAtomicParticle.hpp"
-#include <iostream>
 
+#include <glm/glm.hpp>
 
-TEST_CASE("Simulation: Add particle") {
-    Simulation simulation = Simulation();
-    
-    // Create an instance of SubAtomicParticle
-    std::vector<double> position = {0.0, 0.0, 0.0};
-    std::vector<double> velocity = {1.0, 2.0, 3.0};
-    double mass = 9.109e-31; // Mass of electron in kg
-    double charge = -1.602e-19; // Charge of an electron in Coulombs
-    int spin = 1 / 2; // Spin of an electron
-    SubAtomicParticle particle(mass, position, velocity, charge, spin);    
-    
-    simulation.addParticle(particle);
-
-    // Check that the particle was added successfully
-    std::vector<SubAtomicParticle> particles = simulation.getParticles();
-    REQUIRE(particles.size() == 1);
+static void requireVecApprox(const glm::vec3& a, const glm::vec3& b, float eps = 1e-6f) {
+    REQUIRE(a.x == Approx(b.x).margin(eps));
+    REQUIRE(a.y == Approx(b.y).margin(eps));
+    REQUIRE(a.z == Approx(b.z).margin(eps));
 }
 
-TEST_CASE("Simulation: Update particles with no forces applied to them") {
-    Simulation simulation;
-    
-    // Create an instance of SubAtomicParticle
-    std::vector<double> position = {0.0, 0.0, 0.0};
-    std::vector<double> velocity = {1.0, 2.0, 3.0};
-    double mass = 1.6726e-27; // Mass of proton in kg
-    double charge = 1.602e-19; // Charge of an proton in Coulombs
-    int spin = 1 / 2; // Spin of an electron
-    SubAtomicParticle proton = SubAtomicParticle(mass, position, velocity, charge, spin);
-    std::vector<double> initialPosition = proton.getPosition();
-    simulation.addParticle(proton);
+TEST_CASE("Simulation constructs with requested number of particles") {
+    Config cfg;
+    cfg.numParticles = 1;
 
-    // Update the simulation
-    double deltaTime = 1.0;
-    simulation.update(deltaTime);
+    // Keep it simple / deterministic
+    cfg.enable_chemistry = false;
+    cfg.particleMass = 1.0f;
+    cfg.particleRadius = 0.1f;
 
-    double expectedPositionX = 1;
-    double expectedPositionY = 2;
-    double expectedPositionZ = 3;
-    
-    std::vector<SubAtomicParticle> particlesUpdated = simulation.getParticles();
-    REQUIRE(particlesUpdated.size() == 1);
-    proton = particlesUpdated[0];
-    std::vector<double> expectedPosition = {1,2,3};    
-    std::vector<double> newPosition = proton.getPosition();
+    // Set a valid container (avoid uninitialized walls in default Container())
+    cfg.containerMinX = cfg.containerMinY = cfg.containerMinZ = -2.0f;
+    cfg.containerMaxX = cfg.containerMaxY = cfg.containerMaxZ =  2.0f;
 
-    REQUIRE(newPosition == expectedPosition);
+    Simulation sim(cfg);
+
+    REQUIRE(sim.container.particles.size() == 1);
+    REQUIRE(sim.container.particles[0].mass == Approx(1.0f));
+    REQUIRE(sim.container.particles[0].radius == Approx(0.1f));
 }
+
+TEST_CASE("Simulation update moves particles by v*dt when chemistry is disabled") {
+    Config cfg;
+    cfg.numParticles = 1;
+    cfg.enable_chemistry = false;
+
+    cfg.particleMass = 1.0f;
+    cfg.particleRadius = 0.1f;
+
+    cfg.containerMinX = cfg.containerMinY = cfg.containerMinZ = -10.0f;
+    cfg.containerMaxX = cfg.containerMaxY = cfg.containerMaxZ =  10.0f;
+
+    Simulation sim(cfg);
+
+    // Override random init so the test is deterministic
+    sim.container.particles[0].position = glm::vec3(0.0f, 0.0f, 0.0f);
+    sim.container.particles[0].velocity = glm::vec3(1.0f, 2.0f, 3.0f);
+
+    float dt = 1.0f;
+    sim.update(dt);
+
+    requireVecApprox(sim.container.particles[0].position, glm::vec3(1.0f, 2.0f, 3.0f), 1e-5f);
+}
+
