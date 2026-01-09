@@ -12,8 +12,6 @@ Cell::Cell(float maxX, float minX, float maxY, float minY, float maxZ, float min
     yMax = maxY;
     zMin = minZ;
     zMax = maxZ;
-    
-    
 }
 
 Container::Container() {

@@ -10,55 +10,58 @@
 #include <vector>
 #include <stdexcept>
 #include <algorithm>
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Shaders
 // ─────────────────────────────────────────────────────────────────────────────
 const char* vertexSrc = R"(
-#version 330 core
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aNormal;
-out vec3 FragPos;
-out vec3 Normal;
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
-void main() {
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal;
-    gl_Position = projection * view * vec4(FragPos, 1.0);
-}
+    #version 330 core
+    layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aNormal;
+    out vec3 FragPos;
+    out vec3 Normal;
+    uniform mat4 model;
+    uniform mat4 view;
+    uniform mat4 projection;
+    void main() {
+        FragPos = vec3(model * vec4(aPos, 1.0));
+        Normal = mat3(transpose(inverse(model))) * aNormal;
+        gl_Position = projection * view * vec4(FragPos, 1.0);
+    }
 )";
+
 const char* fragmentSrc = R"(
-#version 330 core
-out vec4 FragColor;
-in vec3 FragPos;
-in vec3 Normal;
-uniform vec3 lightPos;
-uniform vec3 viewPos;
-uniform vec3 lightColor;
-uniform vec3 objectColor;
-uniform float ambientStrength = 0.1;
-uniform float specularStrength = 0.5;
-uniform int shininess = 32;
-uniform vec3 emission = vec3(0.0);
-void main() {
-    vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(lightPos - FragPos);
-    // ambient
-    vec3 ambient = ambientStrength * lightColor;
-    // diffuse
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor;
-    // specular
-    vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-    vec3 specular = specularStrength * spec * lightColor;
-    // result
-    vec3 result = (ambient + diffuse + specular) * objectColor + emission;
-    FragColor = vec4(result, 1.0);
-}
+    #version 330 core
+    out vec4 FragColor;
+    in vec3 FragPos;
+    in vec3 Normal;
+    uniform vec3 lightPos;
+    uniform vec3 viewPos;
+    uniform vec3 lightColor;
+    uniform vec3 objectColor;
+    uniform float ambientStrength = 0.1;
+    uniform float specularStrength = 0.5;
+    uniform int shininess = 32;
+    uniform vec3 emission = vec3(0.0);
+    void main() {
+        vec3 norm = normalize(Normal);
+        vec3 lightDir = normalize(lightPos - FragPos);
+        // ambient
+        vec3 ambient = ambientStrength * lightColor;
+        // diffuse
+        float diff = max(dot(norm, lightDir), 0.0);
+        vec3 diffuse = diff * lightColor;
+        // specular
+        vec3 viewDir = normalize(viewPos - FragPos);
+        vec3 reflectDir = reflect(-lightDir, norm);
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+        vec3 specular = specularStrength * spec * lightColor;
+        // result
+        vec3 result = (ambient + diffuse + specular) * objectColor + emission;
+        FragColor = vec4(result, 1.0);
+    }
 )";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: compile & link shaders
 // ─────────────────────────────────────────────────────────────────────────────
@@ -76,6 +79,7 @@ static GLuint compileShader(const char* source, GLenum type) {
     }
     return shader;
 }
+
 static GLuint createProgram(const char* vSrc, const char* fSrc) {
     GLuint vs = compileShader(vSrc, GL_VERTEX_SHADER);
     GLuint fs = compileShader(fSrc, GL_FRAGMENT_SHADER);
@@ -94,6 +98,7 @@ static GLuint createProgram(const char* vSrc, const char* fSrc) {
     glDeleteShader(fs);
     return prog;
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
 // generateSphere & generateCylinder
 // ─────────────────────────────────────────────────────────────────────────────
@@ -120,6 +125,7 @@ static void generateSphere(float radius, int sectors, int stacks,
         }
     }
 }
+
 static void generateCylinder(std::vector<float>& vertices,
                            std::vector<unsigned int>& indices,
                            float radius = 0.06f,
@@ -142,6 +148,7 @@ static void generateCylinder(std::vector<float>& vertices,
         indices.insert(indices.end(), {a, b, d, d, c, a});
     }
 }
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Renderer implementation
 // ─────────────────────────────────────────────────────────────────────────────
@@ -188,6 +195,7 @@ Renderer::Renderer(const Config& cfg)
                               static_cast<float>(m_width) / m_height,
                               0.1f, 100.0f);
 }
+
 Renderer::~Renderer() {
     if (m_shaderProgram) glDeleteProgram(m_shaderProgram);
     if (m_VAO) glDeleteVertexArrays(1, &m_VAO);
@@ -199,6 +207,7 @@ Renderer::~Renderer() {
     if (m_window) glfwDestroyWindow(m_window);
     glfwTerminate();
 }
+
 void Renderer::initUnitSphere(int sectors, int stacks) {
     std::vector<float> verts;
     std::vector<unsigned int> inds;
@@ -217,6 +226,7 @@ void Renderer::initUnitSphere(int sectors, int stacks) {
     glEnableVertexAttribArray(1);
     m_indexCount = static_cast<unsigned int>(inds.size());
 }
+
 void Renderer::drawBond(const glm::vec3& a, const glm::vec3& b) {
     glm::vec3 dir = b - a;
     float len = glm::length(dir);
@@ -235,6 +245,7 @@ void Renderer::drawBond(const glm::vec3& a, const glm::vec3& b) {
     glBindVertexArray(m_cylinderVAO);
     glDrawElements(GL_TRIANGLES, m_cylinderIndexCount, GL_UNSIGNED_INT, 0);
 }
+
 void Renderer::render(const Simulation& sim) {
     glUniform3f(glGetUniformLocation(m_shaderProgram, "objectColor"), 1.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

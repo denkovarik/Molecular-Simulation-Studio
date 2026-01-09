@@ -2,11 +2,10 @@
 #ifndef SIMULATION_HPP
 #define SIMULATION_HPP
 
-#include "config.hpp"
+#include "../config.hpp"
 #include "Container.hpp"
 #include "Particle.hpp"
 #include <vector>
-#include "config.hpp"
 
 class Simulation {
 public:
