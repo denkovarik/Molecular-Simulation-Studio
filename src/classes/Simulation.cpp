@@ -176,10 +176,11 @@ void Simulation::update(float dt) {
 
     // Legacy mode: Particles
     // Forces (can coexist)
-    if (config.enable_chemistry) {
-        computeChemicalForces(dt); // LJ
-    }
-    computeCoulombForces(dt); // Coulomb (separate flag)
+    if (config.enable_chemistry) computeChemicalForces(dt);
+    computeCoulombForces(dt);
+
+    tryFormBonds();
+
     // Spatial / collisions
     container.assignParticles2Grid();
     if (!config.enable_chemistry) {
@@ -196,3 +197,48 @@ void Simulation::update(float dt) {
         p.position += p.velocity * dt;
     }
 }
+
+static bool alreadyBonded(const std::vector<Bond>& bonds, int i, int j) {
+    if (i > j) std::swap(i, j);
+    for (const auto& b : bonds) {
+        int a = b.i, c = b.j;
+        if (a > c) std::swap(a, c);
+        if (a == i && c == j) return true;
+    }
+    return false;
+}
+
+void Simulation::tryFormBonds() {
+    if (!config.enable_bonds) return;
+
+    auto& ps = container.particles;
+    const float r_form = config.bond_form_dist;
+
+    for (int i = 0; i < (int)ps.size(); ++i) {
+        for (int j = i + 1; j < (int)ps.size(); ++j) {
+            glm::vec3 r = ps[j].position - ps[i].position;
+            float dist = glm::length(r);
+            if (dist > r_form) continue;
+
+            // Optional “approaching” check (keeps it sensible, but not required by your current test)
+            glm::vec3 vrel = ps[j].velocity - ps[i].velocity;
+            if (glm::dot(vrel, r) >= 0.0f) {
+                // moving apart or tangential; skip for now
+                continue;
+            }
+
+            if (alreadyBonded(bonds, i, j)) continue;
+
+            Bond b;
+            b.i = i;
+            b.j = j;
+            b.r0 = config.bond_r0;
+            b.De = config.bond_De;
+            b.a  = config.bond_a;
+            b.strength = 1.0f; // or 0.0f if you want to ramp later
+            bonds.push_back(b);
+            return; // important: create only one per update to avoid multiple in a single frame
+        }
+    }
+}
+
