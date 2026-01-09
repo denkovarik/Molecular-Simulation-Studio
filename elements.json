@@ -1,0 +1,11 @@
+{
+  "H": {
+    "Z": 1,
+    "mass": 1836.0,
+    "charge": 1.0,
+    "vdw_r": 0.53,
+    "harmonic_k": 1.0,
+    "harmonic_eq": 0.53,
+    "barrier": 0.1
+  }
+}
