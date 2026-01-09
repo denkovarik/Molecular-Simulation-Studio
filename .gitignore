@@ -38,3 +38,4 @@ venv/
 tmp/
 run_summary.py
 tmp/code/run_summary.py
+src/third_party/
