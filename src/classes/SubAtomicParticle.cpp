@@ -1,26 +1,12 @@
-// testing/test_Atom.cpp
-
-/*
-
-g++ -std=c++17 \
-  -I/usr/local/include/catch2 \
-  -I./src -I./src/classes \
-  testing/test_Atom.cpp \
-  src/classes/Atom.cpp \
-  src/classes/Particle.cpp \
-  src/classes/SubAtomicParticle.cpp \
-  -o test_Atom.exe
-  
-./testing/test_Atom.cpp
-
-*/
+// src/classes/SubAtomicParticle.cpp
 
 #include "SubAtomicParticle.hpp"
 #include <cmath>
 #include <iostream>
 #include <vector>
 
-SubAtomicParticle::SubAtomicParticle(double mass, std::vector<double> position, std::vector<double>& velocity, double charge, int spin) 
+SubAtomicParticle::SubAtomicParticle(double mass, std::vector<double> position, 
+                                     std::vector<double>& velocity, double charge, int spin) 
     : mass_(mass), charge_(charge), spin_(spin)
 {
     position_ = position;
@@ -52,6 +38,7 @@ void SubAtomicParticle::setForces(std::vector<double>& forces)
     forces_ = forces;
 }
 
-void SubAtomicParticle::setVelocity(const std::vector<double>& vel) {
+void SubAtomicParticle::setVelocity(const std::vector<double>& vel) 
+{
     velocity_ = vel;
 }

@@ -8,7 +8,8 @@
 #include <string>
 #include <glm/glm.hpp>
 
-class Atom {
+class Atom 
+{
 public:
     Particle nucleus;
     std::vector<SubAtomicParticle> electrons;

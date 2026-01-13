@@ -1,3 +1,5 @@
+// src/classes/Renderer.hpp
+
 #pragma once
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -7,14 +9,15 @@
 
 struct Config;  // forward declare
 
-class Simulation; // forward declare (we'll make this soon)
+class Simulation; // forward declare 
 
-class Renderer {
+class Renderer 
+{
 public:
     explicit Renderer(const Config& cfg);
     ~Renderer();
 
-    // Delete copy, allow move if you want (optional)
+    // Delete copy, allow move wanted
     Renderer(const Renderer&) = delete;
     Renderer& operator=(const Renderer&) = delete;
 

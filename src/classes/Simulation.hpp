@@ -1,4 +1,5 @@
 // src/classes/Simulation.hpp
+
 #ifndef SIMULATION_HPP
 #define SIMULATION_HPP
 
@@ -10,7 +11,8 @@
 #include <map>
 #include <string>
 
-struct ElementData { 
+struct ElementData 
+{ 
     int Z;
     float mass;
     float charge;
@@ -20,7 +22,8 @@ struct ElementData {
     float barrier;
 };
 
-struct Bond {
+struct Bond 
+{
     int i = -1;
     int j = -1;
     float r0 = 0.74f;
@@ -29,7 +32,8 @@ struct Bond {
     float strength = 1.0f;  
 };
 
-class Simulation {
+class Simulation 
+{
 public:
     explicit Simulation(const Config& cfg);
     void computeCoulombForces(float dt);

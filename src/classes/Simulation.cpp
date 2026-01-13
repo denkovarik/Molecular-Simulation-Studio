@@ -1,4 +1,5 @@
 // src/classes/Simulation.cpp
+
 #include "Simulation.hpp"
 #include <random>
 #include <cmath>
@@ -19,7 +20,8 @@ Simulation::Simulation(const Config& cfg)
                 cfg.containerMaxZ, cfg.containerMinZ),
       config(cfg)
 {
-    if (config.enable_subatomic) {
+    if (config.enable_subatomic) 
+    {
         // Subatomic mode: Spawn Atoms instead
         atoms.reserve(config.numParticles);
         // For test/demo: caller will populate, or add random spawn logic here
@@ -39,26 +41,32 @@ Simulation::Simulation(const Config& cfg)
     std::uniform_real_distribution<float> z_dist(cfg.containerMinZ + cfg.particleRadius * 2,
                                                  cfg.containerMaxZ - cfg.particleRadius * 2);
     std::uniform_real_distribution<float> vel_dist(-cfg.velocityRange, cfg.velocityRange);
-    for (int n = 0; n < cfg.numParticles; ++n) {
+    for (int n = 0; n < cfg.numParticles; ++n) 
+    {
         bool placed = false;
-        for (int attempt = 0; attempt < cfg.maxPlacementAttemptsPerParticle; ++attempt) {
+        for (int attempt = 0; attempt < cfg.maxPlacementAttemptsPerParticle; ++attempt) 
+        {
             glm::vec3 pos(x_dist(gen), y_dist(gen), z_dist(gen));
             glm::vec3 vel(vel_dist(gen), vel_dist(gen), vel_dist(gen));
             Particle newParticle(cfg.particleMass, cfg.particleRadius, pos, vel);
             bool collides = false;
-            for (const auto& p : container.particles) {
-                if (container.particlesCollide(newParticle, p)) {
+            for (const auto& p : container.particles) 
+            {
+                if (container.particlesCollide(newParticle, p)) 
+                {
                     collides = true;
                     break;
                 }
             }
-            if (!collides) {
+            if (!collides) 
+            {
                 container.particles.push_back(newParticle);
                 placed = true;
                 break;
             }
         }
-        if (!placed) {
+        if (!placed) 
+        {
             throw std::runtime_error(
                 "Simulation init: failed to place particle " + std::to_string(n) +
                 " without overlap. Reduce numParticles, reduce radius, or enlarge container."
@@ -67,15 +75,18 @@ Simulation::Simulation(const Config& cfg)
     }
 }
 
-void Simulation::loadElementsFromJSON(const std::string& filename) {
+void Simulation::loadElementsFromJSON(const std::string& filename) 
+{
     std::ifstream file(filename);
-    if (!file.is_open()) {
+    if (!file.is_open()) 
+    {
         throw std::runtime_error("Failed to open JSON file: " + filename);
     }
     json j;
     file >> j;
     elementData.clear();
-    for (auto& [key, value] : j.items()) {
+    for (auto& [key, value] : j.items()) 
+    {
         ElementData data;
         data.Z = value["Z"];
         data.mass = value["mass"];
@@ -88,12 +99,15 @@ void Simulation::loadElementsFromJSON(const std::string& filename) {
     }
 }
 
-void Simulation::computeChemicalForces(float dt) {
+void Simulation::computeChemicalForces(float dt) 
+{
     auto& ps = container.particles;
     // Guard against silly dt (helps tests, too)
     if (dt <= 0.0f) return;
-    for (size_t i = 0; i < ps.size(); ++i) {
-        for (size_t j = i + 1; j < ps.size(); ++j) {
+    for (size_t i = 0; i < ps.size(); ++i) 
+    {
+        for (size_t j = i + 1; j < ps.size(); ++j) 
+        {
             Particle& a = ps[i];
             Particle& b = ps[j];
             glm::vec3 r = b.position - a.position; // a -> b
@@ -116,14 +130,17 @@ void Simulation::computeChemicalForces(float dt) {
     }
 }
 
-void Simulation::computeCoulombForces(float dt) {
+void Simulation::computeCoulombForces(float dt) 
+{
     if (!config.enable_coulomb) return;
     if (dt <= 0.0f) return;
     auto& ps = container.particles;
     // Softening must be > 0 to avoid singularities if someone sets it to 0
     const float soft = std::max(config.coulomb_softening, 1e-6f);
-    for (size_t i = 0; i < ps.size(); ++i) {
-        for (size_t j = i + 1; j < ps.size(); ++j) {
+    for (size_t i = 0; i < ps.size(); ++i) 
+    {
+        for (size_t j = i + 1; j < ps.size(); ++j) 
+        {
             Particle& a = ps[i];
             Particle& b = ps[j];
             glm::vec3 r_ab = b.position - a.position;
@@ -141,14 +158,20 @@ void Simulation::computeCoulombForces(float dt) {
     }
 }
 
-void Simulation::checkReactions() {
-    for (size_t i = 0; i < atoms.size(); ++i) {
-        for (size_t j = i + 1; j < atoms.size(); ++j) {
+void Simulation::checkReactions() 
+{
+    for (size_t i = 0; i < atoms.size(); ++i) 
+    {
+        for (size_t j = i + 1; j < atoms.size(); ++j) 
+        {
             glm::vec3 r = atoms[j].nucleus.position - atoms[i].nucleus.position;
             float dist = glm::length(r);
-            float ke = 0.5f * atoms[i].nucleus.mass * glm::dot(atoms[i].nucleus.velocity, atoms[i].nucleus.velocity) +
-                       0.5f * atoms[j].nucleus.mass * glm::dot(atoms[j].nucleus.velocity, atoms[j].nucleus.velocity);
-            if (dist < 1.5f && ke > config.activation_barrier) {
+            float ke = 0.5f * atoms[i].nucleus.mass * glm::dot(atoms[i].nucleus.velocity, 
+                                                               atoms[i].nucleus.velocity) +
+                       0.5f * atoms[j].nucleus.mass * glm::dot(atoms[j].nucleus.velocity, 
+                                                               atoms[j].nucleus.velocity);
+            if (dist < 1.5f && ke > config.activation_barrier) 
+            {
                 // Form bond: Center and set equilibrium distance
                 glm::vec3 mid = (atoms[i].nucleus.position + atoms[j].nucleus.position) / 2.0f;
                 glm::vec3 dir = glm::normalize(r);
@@ -161,14 +184,18 @@ void Simulation::checkReactions() {
     }
 }
 
-void Simulation::update(float dt) {
-    if (config.enable_subatomic) {
+void Simulation::update(float dt) 
+{
+    if (config.enable_subatomic) 
+    {
         // Subatomic mode: Use atoms
-        for (auto& atom : atoms) {
+        for (auto& atom : atoms) 
+        {
             atom.applyForces(atoms, dt, config);
         }
         checkReactions();
-        for (auto& atom : atoms) {
+        for (auto& atom : atoms) 
+        {
             atom.update(dt);
         }
         return;
@@ -183,14 +210,17 @@ void Simulation::update(float dt) {
 
     // Spatial / collisions
     container.assignParticles2Grid();
-    if (!config.enable_chemistry) {
-        // Keep your old "bouncing balls" behavior when chemistry is off
+    if (!config.enable_chemistry) 
+    {
+        // Keep old "bouncing balls" behavior when chemistry is off
         container.resolveParticleCollisions();
     }
     container.checkWallCollisions();
     // Integrate positions
-    for (auto& p : container.particles) {
-        if (config.enable_chemistry) {
+    for (auto& p : container.particles) 
+    {
+        if (config.enable_chemistry) 
+        {
             // Small damping to keep the chemistry demo stable (optional)
             p.velocity *= 0.995f;
         }
@@ -198,9 +228,11 @@ void Simulation::update(float dt) {
     }
 }
 
-static bool alreadyBonded(const std::vector<Bond>& bonds, int i, int j) {
+static bool alreadyBonded(const std::vector<Bond>& bonds, int i, int j) 
+{
     if (i > j) std::swap(i, j);
-    for (const auto& b : bonds) {
+    for (const auto& b : bonds) 
+    {
         int a = b.i, c = b.j;
         if (a > c) std::swap(a, c);
         if (a == i && c == j) return true;
@@ -208,21 +240,25 @@ static bool alreadyBonded(const std::vector<Bond>& bonds, int i, int j) {
     return false;
 }
 
-void Simulation::tryFormBonds() {
+void Simulation::tryFormBonds() 
+{
     if (!config.enable_bonds) return;
 
     auto& ps = container.particles;
     const float r_form = config.bond_form_dist;
 
-    for (int i = 0; i < (int)ps.size(); ++i) {
-        for (int j = i + 1; j < (int)ps.size(); ++j) {
+    for (int i = 0; i < (int)ps.size(); ++i) 
+    {
+        for (int j = i + 1; j < (int)ps.size(); ++j) 
+        {
             glm::vec3 r = ps[j].position - ps[i].position;
             float dist = glm::length(r);
             if (dist > r_form) continue;
 
-            // Optional “approaching” check (keeps it sensible, but not required by your current test)
+            // Optional “approaching” check 
             glm::vec3 vrel = ps[j].velocity - ps[i].velocity;
-            if (glm::dot(vrel, r) >= 0.0f) {
+            if (glm::dot(vrel, r) >= 0.0f) 
+            {
                 // moving apart or tangential; skip for now
                 continue;
             }

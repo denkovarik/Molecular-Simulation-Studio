@@ -1,3 +1,5 @@
+// src/physics/Coulomb.hpp
+
 #pragma once
 
 #include <glm/glm.hpp>
@@ -19,7 +21,8 @@ inline glm::vec3 coulombForce(
     float q2,
     float k,
     float soft
-) {
+) 
+{
     // Softened squared distance
     float r2 = glm::dot(rvec, rvec) + soft * soft;
 

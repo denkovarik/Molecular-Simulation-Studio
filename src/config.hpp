@@ -1,9 +1,12 @@
+// src/config.hpp
+
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
 #include <string>
 
-struct Config {
+struct Config 
+{
     // Window
     int windowWidth = 1000;
     int windowHeight = 1000;
@@ -47,8 +50,8 @@ struct Config {
     bool enable_subatomic = false;
     float harmonic_k = 1.0f;
     float harmonic_eq = 0.53f;
-    float electron_mass = 1.0f;  // AU (added)
-    float proton_mass = 1836.0f;  // AU (added if needed)
+    float electron_mass = 1.0f;  // AU 
+    float proton_mass = 1836.0f;  // AU 
     float activation_barrier = 0.1f;
     
     // Bonding (Phase 1: united-atom)
@@ -64,10 +67,10 @@ struct Config {
     float bond_De = 10.0f;   
     float bond_a  = 8.0f;   
 
-    // Optional: break distance 
+    // Break distance 
     float bond_break_dist = 2.5f;
 
-    // Optional: damping along bond axis (stability)
+    // Damping along bond axis (stability)
     float bond_axis_damping = 0.05f;
 
 };

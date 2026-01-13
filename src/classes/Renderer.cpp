@@ -1,11 +1,12 @@
 // src/classes/Renderer.cpp
+
 #include "Renderer.hpp"
 #include "config.hpp"
 #include "Simulation.hpp"
 #include "Particle.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp> // <-- This gives glm::to_string()
+#include <glm/gtx/string_cast.hpp> 
 #include <iostream>
 #include <vector>
 #include <stdexcept>
@@ -23,7 +24,8 @@ const char* vertexSrc = R"(
     uniform mat4 model;
     uniform mat4 view;
     uniform mat4 projection;
-    void main() {
+    void main() 
+    {
         FragPos = vec3(model * vec4(aPos, 1.0));
         Normal = mat3(transpose(inverse(model))) * aNormal;
         gl_Position = projection * view * vec4(FragPos, 1.0);
@@ -43,7 +45,8 @@ const char* fragmentSrc = R"(
     uniform float specularStrength = 0.5;
     uniform int shininess = 32;
     uniform vec3 emission = vec3(0.0);
-    void main() {
+    void main() 
+    {
         vec3 norm = normalize(Normal);
         vec3 lightDir = normalize(lightPos - FragPos);
         // ambient
@@ -65,13 +68,15 @@ const char* fragmentSrc = R"(
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: compile & link shaders
 // ─────────────────────────────────────────────────────────────────────────────
-static GLuint compileShader(const char* source, GLenum type) {
+static GLuint compileShader(const char* source, GLenum type) 
+{
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, nullptr);
     glCompileShader(shader);
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
+    if (!success) 
+    {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
         std::string typeName = (type == GL_VERTEX_SHADER) ? "VERTEX" : "FRAGMENT";
@@ -80,7 +85,8 @@ static GLuint compileShader(const char* source, GLenum type) {
     return shader;
 }
 
-static GLuint createProgram(const char* vSrc, const char* fSrc) {
+static GLuint createProgram(const char* vSrc, const char* fSrc) 
+{
     GLuint vs = compileShader(vSrc, GL_VERTEX_SHADER);
     GLuint fs = compileShader(fSrc, GL_FRAGMENT_SHADER);
     GLuint prog = glCreateProgram();
@@ -89,7 +95,8 @@ static GLuint createProgram(const char* vSrc, const char* fSrc) {
     glLinkProgram(prog);
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
-    if (!success) {
+    if (!success) 
+    {
         char infoLog[512];
         glGetProgramInfoLog(prog, 512, nullptr, infoLog);
         throw std::runtime_error("Program linking failed:\n" + std::string(infoLog));
@@ -104,11 +111,14 @@ static GLuint createProgram(const char* vSrc, const char* fSrc) {
 // ─────────────────────────────────────────────────────────────────────────────
 static void generateSphere(float radius, int sectors, int stacks,
                          std::vector<float>& vertices,
-                         std::vector<unsigned int>& indices) {
+                         std::vector<unsigned int>& indices) 
+{
     vertices.clear(); indices.clear();
-    for (int i = 0; i <= stacks; ++i) {
+    for (int i = 0; i <= stacks; ++i) 
+    {
         float phi = glm::pi<float>() * i / stacks;
-        for (int j = 0; j <= sectors; ++j) {
+        for (int j = 0; j <= sectors; ++j) 
+        {
             float theta = 2.0f * glm::pi<float>() * j / sectors;
             float x = radius * sin(phi) * cos(theta);
             float y = radius * cos(phi);
@@ -116,8 +126,10 @@ static void generateSphere(float radius, int sectors, int stacks,
             vertices.insert(vertices.end(), {x, y, z, x / radius, y / radius, z / radius});
         }
     }
-    for (int i = 0; i < stacks; ++i) {
-        for (int j = 0; j < sectors; ++j) {
+    for (int i = 0; i < stacks; ++i) 
+    {
+        for (int j = 0; j < sectors; ++j) 
+        {
             unsigned int first = i * (sectors + 1) + j;
             unsigned int second = first + sectors + 1;
             indices.insert(indices.end(), {first, second, first + 1});
@@ -129,18 +141,22 @@ static void generateSphere(float radius, int sectors, int stacks,
 static void generateCylinder(std::vector<float>& vertices,
                            std::vector<unsigned int>& indices,
                            float radius = 0.06f,
-                           int sectors = 20) {
+                           int sectors = 20) 
+{
     vertices.clear(); indices.clear();
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; ++i) 
+    {
         float z = (i == 0) ? -0.5f : 0.5f;
-        for (int j = 0; j <= sectors; ++j) {
+        for (int j = 0; j <= sectors; ++j) 
+        {
             float angle = 2.0f * glm::pi<float>() * j / sectors;
             float x = radius * cosf(angle);
             float y = radius * sinf(angle);
             vertices.insert(vertices.end(), {x, y, z, x / radius, y / radius, 0.0f});
         }
     }
-    for (int j = 0; j < sectors; ++j) {
+    for (int j = 0; j < sectors; ++j) 
+    {
         unsigned int a = j;
         unsigned int b = j + 1;
         unsigned int c = j + sectors + 1;
@@ -181,7 +197,8 @@ Renderer::Renderer(const Config& cfg)
     glBindBuffer(GL_ARRAY_BUFFER, m_cylinderVBO);
     glBufferData(GL_ARRAY_BUFFER, cylVerts.size() * sizeof(float), cylVerts.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_cylinderEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, cylInds.size() * sizeof(unsigned int), cylInds.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 
+                 cylInds.size() * sizeof(unsigned int), cylInds.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -196,7 +213,8 @@ Renderer::Renderer(const Config& cfg)
                               0.1f, 100.0f);
 }
 
-Renderer::~Renderer() {
+Renderer::~Renderer() 
+{
     if (m_shaderProgram) glDeleteProgram(m_shaderProgram);
     if (m_VAO) glDeleteVertexArrays(1, &m_VAO);
     if (m_VBO) glDeleteBuffers(1, &m_VBO);
@@ -208,7 +226,8 @@ Renderer::~Renderer() {
     glfwTerminate();
 }
 
-void Renderer::initUnitSphere(int sectors, int stacks) {
+void Renderer::initUnitSphere(int sectors, int stacks) 
+{
     std::vector<float> verts;
     std::vector<unsigned int> inds;
     generateSphere(1.0f, sectors, stacks, verts, inds);
@@ -219,7 +238,8 @@ void Renderer::initUnitSphere(int sectors, int stacks) {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
     glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(float), verts.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(unsigned int), inds.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, inds.size() * sizeof(unsigned int), 
+                 inds.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
@@ -227,7 +247,8 @@ void Renderer::initUnitSphere(int sectors, int stacks) {
     m_indexCount = static_cast<unsigned int>(inds.size());
 }
 
-void Renderer::drawBond(const glm::vec3& a, const glm::vec3& b) {
+void Renderer::drawBond(const glm::vec3& a, const glm::vec3& b) 
+{
     glm::vec3 dir = b - a;
     float len = glm::length(dir);
     if (len < 1e-4f) return;
@@ -239,39 +260,49 @@ void Renderer::drawBond(const glm::vec3& a, const glm::vec3& b) {
     model = glm::translate(model, a + dir * 0.5f);
     model = model * glm::mat4(glm::mat3(right, up, -axis));
     model = glm::scale(model, glm::vec3(1.0f, 1.0f, len));
-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "model"), 1, 
+                       GL_FALSE, glm::value_ptr(model));
     glUniform3f(glGetUniformLocation(m_shaderProgram, "objectColor"), 0.0f, 0.5f, 0.5f);
     glUniform3f(glGetUniformLocation(m_shaderProgram, "emission"), 0.3f, 0.9f, 0.9f);
     glBindVertexArray(m_cylinderVAO);
     glDrawElements(GL_TRIANGLES, m_cylinderIndexCount, GL_UNSIGNED_INT, 0);
 }
 
-void Renderer::render(const Simulation& sim) {
+void Renderer::render(const Simulation& sim) 
+{
     glUniform3f(glGetUniformLocation(m_shaderProgram, "objectColor"), 1.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glUseProgram(m_shaderProgram);
-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(m_view));
-    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(m_proj));
+    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "view"), 1, 
+                       GL_FALSE, glm::value_ptr(m_view));
+    glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "projection"), 1, 
+                       GL_FALSE, glm::value_ptr(m_proj));
     glUniform3f(glGetUniformLocation(m_shaderProgram, "lightPos"), 0.0f, 0.0f, 10.0f);
     glUniform3f(glGetUniformLocation(m_shaderProgram, "viewPos"), 0.0f, 0.0f, 8.0f);
     glUniform3f(glGetUniformLocation(m_shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
     // Draw atoms (white)
     glBindVertexArray(m_VAO);
-    for (const Particle& p : sim.container.particles) {
+    for (const Particle& p : sim.container.particles) 
+    {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), p.position);
         model = glm::scale(model, glm::vec3(p.radius));
-        glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(m_shaderProgram, "model"), 1, 
+                           GL_FALSE, glm::value_ptr(model));
         glUniform3f(glGetUniformLocation(m_shaderProgram, "objectColor"), 1.0f, 1.0f, 1.0f);
         glUniform3f(glGetUniformLocation(m_shaderProgram, "emission"), 0.0f, 0.0f, 0.0f);
         glDrawElements(GL_TRIANGLES, m_indexCount, GL_UNSIGNED_INT, 0);
     }
     // Draw bonds
-    if (sim.config.enable_chemistry) {
+    if (sim.config.enable_chemistry) 
+    {
         const auto& particles = sim.container.particles;
-        for (size_t i = 0; i < particles.size(); ++i) {
-            for (size_t j = i + 1; j < particles.size(); ++j) {
+        for (size_t i = 0; i < particles.size(); ++i) 
+        {
+            for (size_t j = i + 1; j < particles.size(); ++j) 
+            {
                 float d = glm::length(particles[j].position - particles[i].position);
-                if (d < 1.5f) {
+                if (d < 1.5f) 
+                {
                     drawBond(particles[i].position, particles[j].position);
                 }
             }

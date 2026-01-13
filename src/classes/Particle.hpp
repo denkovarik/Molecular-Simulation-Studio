@@ -1,10 +1,12 @@
 // src/classes/Particle.hpp
+
 #ifndef PARTICLE_HPP
 #define PARTICLE_HPP
 
 #include <glm/glm.hpp>
 
-class Particle {
+class Particle 
+{
 public:
     float mass   = 1.0f;
     float radius = 0.1f;

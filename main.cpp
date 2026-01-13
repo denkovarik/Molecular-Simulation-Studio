@@ -15,10 +15,12 @@
 #include <GLFW/glfw3.h>
 
 // Optional: simple command-line config override
-Config parseConfig(int argc, char** argv) {
+Config parseConfig(int argc, char** argv) 
+{
     Config cfg;
 
-    for (int i = 1; i < argc; ++i) {
+    for (int i = 1; i < argc; ++i) 
+    {
         std::string arg = argv[i];
         if (arg == "--particles" && i+1 < argc) cfg.numParticles = std::stoi(argv[++i]);
         else if (arg == "--radius" && i+1 < argc) cfg.particleRadius = std::stof(argv[++i]);
@@ -31,10 +33,12 @@ Config parseConfig(int argc, char** argv) {
     return cfg;
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char** argv) 
+{
     Config config = parseConfig(argc, argv);
 
-    try {
+    try 
+    {
         // Create renderer (owns window + OpenGL)
         Renderer renderer(config);
 
@@ -48,7 +52,8 @@ int main(int argc, char** argv) {
         std::cout << "Press ESC or close window to exit.\n";
 
         // Main loop
-        while (!glfwWindowShouldClose(renderer.getWindow())) {  // assuming you expose getWindow()
+        while (!glfwWindowShouldClose(renderer.getWindow())) 
+        { 
             float currentTime = static_cast<float>(glfwGetTime());
             float deltaTime = currentTime - lastTime;
             lastTime = currentTime;
@@ -63,7 +68,8 @@ int main(int argc, char** argv) {
             std::this_thread::sleep_for(std::chrono::milliseconds(8));
         }
 
-    } catch (const std::exception& e) {
+    } catch (const std::exception& e) 
+    {
         std::cerr << "Fatal error: " << e.what() << std::endl;
         return -1;
     }
