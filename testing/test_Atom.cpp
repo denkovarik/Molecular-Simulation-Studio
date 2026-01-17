@@ -9,6 +9,7 @@ g++ -std=c++17 \
   testing/test_Atom.cpp \
   src/classes/Atom.cpp \
   src/classes/Particle.cpp \
+  src/classes/SubAtomicParticle.cpp \
   -o test_Atom.exe
 
 ./test_Atom.exe
@@ -35,10 +36,12 @@ TEST_CASE("Atom constructor initializes nucleus and empty electrons") {
     float vdw_r = 0.53f;
     float h_k = 1.0f;
     float h_eq = 0.53f;
+    float morse_De = 13.6f;
+    float morse_a = 1.0f;
     glm::vec3 pos(0.0f, 0.0f, 0.0f);
     glm::vec3 vel(1.0f, 0.0f, 0.0f);
 
-    Atom atom(symbol, Z, mass, charge, vdw_r, h_k, h_eq, pos, vel);
+    Atom atom(symbol, Z, mass, charge, vdw_r, h_k, h_eq, morse_De, morse_a, pos, vel);
 
     // Check nucleus
     REQUIRE(atom.nucleus.mass == Approx(mass));
@@ -60,7 +63,7 @@ TEST_CASE("Atom constructor initializes nucleus and empty electrons") {
 
 TEST_CASE("Atom can add electrons with correct properties") {
     // Arrange: Create a basic H atom
-    Atom h_atom("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, glm::vec3(0.0f), glm::vec3(0.0f));
+    Atom h_atom("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, 13.6f, 1.0f, glm::vec3(0.0f), glm::vec3(0.0f));
 
     // Act: Add an electron (use SubAtomicParticle constructor)
     std::vector<double> e_pos = {0.53, 0.0, 0.0};  // Offset from nucleus
@@ -93,7 +96,7 @@ TEST_CASE("applyForces conserves total momentum for binding in isolated atom") {
     cfg.electron_mass = 1.0f;  // AU
 
     // Create H atom with offset electron
-    Atom h_atom("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, glm::vec3(0.0f), glm::vec3(0.0f));
+    Atom h_atom("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, 13.6f, 1.0f, glm::vec3(0.0f), glm::vec3(0.0f));
     std::vector<double> e_pos = {1.0f, 0.0f, 0.0f};  // Displaced beyond eq
     std::vector<double> e_vel = {0.0f, 0.0f, 0.0f};
     h_atom.electrons.emplace_back(1.0f, e_pos, e_vel, -1.0f, 1);
@@ -129,8 +132,8 @@ TEST_CASE("applyForces applies Coulomb repulsion between two atoms and conserves
 
     // Two H atoms 
     std::vector<Atom> atoms;
-    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
-    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, 13.6f, 1.0f, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, 13.6f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
 
     // Initial momentum (zero)
     glm::vec3 p_total_before = atoms[0].nucleus.mass * atoms[0].nucleus.velocity +
@@ -163,11 +166,11 @@ TEST_CASE("applyForces applies Coulomb attraction between electron of one atom a
 
     // Two H atoms: Left with electron, right without (toy ionic setup)
     std::vector<Atom> atoms;
-    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, 13.6f, 1.0f, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
     std::vector<double> e_pos = {-0.5f, 0.0f, 0.0f};  // Electron between, but bound to left
     std::vector<double> e_vel = {0.0f, 0.0f, 0.0f};
     atoms[0].electrons.emplace_back(1.0f, e_pos, e_vel, -1.0f, 1);
-    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
+    atoms.emplace_back("H", 1, 1836.0f, 1.0f, 0.53f, 1.0f, 0.53f, 13.6f, 1.0f, glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f));
 
     // Initial total momentum (zero)
     glm::vec3 p_total_before(0.0f);

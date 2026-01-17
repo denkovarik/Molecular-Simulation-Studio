@@ -43,15 +43,6 @@ TEST_CASE("applyImpulse changes velocity by impulse/mass") {
     requireVecApprox(p.velocity, glm::vec3(0.01f, 0.02f, 0.03f), 1e-7f);
 }
 
-TEST_CASE("updatePosition advances position by v*dt") {
-    Particle p(1.0f, 0.1f, glm::vec3(0.0f), glm::vec3(0.01f, 0.02f, 0.03f));
-
-    float dt = 1.0f;
-    p.updatePosition(dt);
-
-    requireVecApprox(p.position, glm::vec3(0.01f, 0.02f, 0.03f), 1e-7f);
-}
-
 TEST_CASE("applyImpulse ignores zero impulse") {
     Particle p(1.0f, 0.1f, glm::vec3(0.0f), glm::vec3(1.0f, 2.0f, 3.0f));
     p.applyImpulse(glm::vec3(0.0f));

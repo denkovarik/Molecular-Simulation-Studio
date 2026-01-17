@@ -6,6 +6,7 @@ g++ -std=c++17 -O0 -g \
   testing/test_BondFormation.cpp \
   src/classes/Simulation.cpp src/classes/Container.cpp src/classes/Particle.cpp \
   src/classes/Atom.cpp src/classes/SubAtomicParticle.cpp \
+  src/physics/QmSurface1D.cpp \
   -o test_BondFormation.exe
 
 ./test_BondFormation.exe
@@ -47,12 +48,12 @@ TEST_CASE("H + H approaching within bond_form_dist creates exactly one bond") {
     sim.container.particles.emplace_back(
         /*mass*/ 1.0f, /*radius*/ 0.1f,
         /*pos*/ glm::vec3(-2.0f, 0.0f, 0.0f),
-        /*vel*/ glm::vec3(+1.0f, 0.0f, 0.0f)
+        /*vel*/ glm::vec3(+2.0f, 0.0f, 0.0f)
     );
     sim.container.particles.emplace_back(
         /*mass*/ 1.0f, /*radius*/ 0.1f,
         /*pos*/ glm::vec3(+2.0f, 0.0f, 0.0f),
-        /*vel*/ glm::vec3(-1.0f, 0.0f, 0.0f)
+        /*vel*/ glm::vec3(-2.0f, 0.0f, 0.0f)
     );
 
     // Step forward until they should cross within bond_form_dist
