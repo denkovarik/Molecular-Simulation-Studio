@@ -1,4 +1,5 @@
-// src/classes/Container.hpp (updated for const in particlesCollide)
+// src/classes/Container.hpp 
+
 #ifndef CONTAINER_HPP
 #define CONTAINER_HPP
 
@@ -6,7 +7,8 @@
 #include "Particle.hpp"
 #include <vector>
 
-class Cell {
+class Cell 
+{
 public:
     float xMin = 0.0f;
     float xMax = 1.0f;
@@ -14,12 +16,13 @@ public:
     float yMax = 1.0f;
     float zMin = 0.0f;
     float zMax = 1.0f;
-    std::vector<int> particleIndies; // Indies of the particles
+    std::vector<int> particleIndies; 
 
-    Cell(float minX, float maxX, float minY, float maxY, float minZ, float maxZ);
+    Cell(float maxX, float minX, float maxY, float minY, float maxZ, float minZ);
 };
 
-class Grid {
+class Grid 
+{
 public:
     float cell_axis_len = 0.1;
     std::vector<std::vector<std::vector<Cell>>> theMatrix;
@@ -32,7 +35,8 @@ public:
     int getGridZMax(int z, int range);
 };
 
-class Container {
+class Container 
+{
 public:
     float rightWallX = 2.0f;
     float leftWallX = -2.0f;
@@ -50,10 +54,11 @@ public:
     void assignParticles2Grid();
     std::vector<size_t> computeGridIndex(Particle& particle);
     void clearGrid();
-    bool particlesCollide(const Particle& a, const Particle& b);  // Changed to const references
+    bool particlesCollide(const Particle& a, const Particle& b); 
     void resolveParticleCollision(Particle& a, Particle& b);
     void resolveParticleCollisions();
     void checkWallCollisions();
+    void checkWallCollisions(float dampening);
 };
 
 #endif // CONTAINER_HPP

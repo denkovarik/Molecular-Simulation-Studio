@@ -1,0 +1,12 @@
+{
+  "reactions": [
+    {
+      "name": "H_H_to_H2",
+      "reactants": ["H", "H"],
+      "product": "H2",
+      "min_dist": 1.5,
+      "min_ke": 0.1,
+      "bond_energy": 4.52
+    }
+  ]
+}

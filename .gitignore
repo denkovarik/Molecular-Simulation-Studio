@@ -1,29 +1,41 @@
-# Ignore compiled object files
+# Build and compiled files
 *.o
 *.obj
-
-# Ignore executable files
-*.exe
-
-# Ignore IDE and editor configuration files
-.vscode/
-.idea/
-
-# Ignore build directories
 build/
 Debug/
 Release/
 
-# Ignore package manager files
+# Executables
+*.exe
+MolDynSim
+
+# IDE and editor configurations
+.idea/
+.vscode/
+
+# Package manager files
 CMakeCache.txt
 cmake_install.cmake
 
-# Ignore operating system-specific files
-.DS_Store  # macOS
-Thumbs.db  # Windows
-ehthumbs.db  # Windows
-Desktop.ini  # Windows
+# Operating system-specific files
+.DS_Store     # macOS
+Desktop.ini   # Windows
+Thumbs.db     # Windows
+ehthumbs.db   # Windows
 
-# Ignore temporary files
-*.tmp
+# Temporary files
 *.bak
+*.tmp
+
+# Virtual environment
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# Tool temp dirs
+tmp/
+run_summary.py
+tmp/code/run_summary.py
+src/third_party/

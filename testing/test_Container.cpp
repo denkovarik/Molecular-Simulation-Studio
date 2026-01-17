@@ -1,9 +1,17 @@
-// g++ -std=c++14 -I/usr/local/include/catch2 -L/usr/local/lib -o test_Container.exe testing/test_Container.cpp src/classes/Particle.cpp src/classes/Container.cpp -lCatch2Main -lCatch2
-// ./test_Container.exe
+// testing/test_Container.cpp
 
-#define CATCH_CONFIG_MAIN  // This tells Catch2 to provide a main function
-#include "catch2/catch_all.hpp"
-#include "catch2/catch_approx.hpp"
+/* 
+Usage:
+
+g++ -std=c++14 -I/usr/local/include -o test_Container.exe \
+    testing/test_Container.cpp src/classes/Particle.cpp src/classes/Container.cpp
+
+./test_Container.exe
+
+*/
+
+#define CATCH_CONFIG_MAIN
+#include <catch2/catch.hpp>
 #include "../src/classes/Container.hpp"
 #include <iostream>
 
@@ -71,3 +79,54 @@ TEST_CASE("Container with Particle with Wall Collisions") {
     REQUIRE(c1.particles[i].position == glm::vec3(0.0f, 0.0f, -1.9f));
     REQUIRE(c1.particles[i].velocity == glm::vec3(0.0f, 0.0f, 0.01f));
 }
+
+TEST_CASE("Container: resolveParticleCollision should separate two equal-mass particles in head-on collision") {
+    Container c;
+
+    // Arrange: two equal-mass particles overlapping and moving toward each other along x
+    Particle a(1.0f, 0.5f, glm::vec3(-0.4f, 0.0f, 0.0f), glm::vec3(+1.0f, 0.0f, 0.0f));
+    Particle b(1.0f, 0.5f, glm::vec3(+0.4f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
+
+    // Sanity: they should be overlapping so collision resolution triggers
+    REQUIRE(c.particlesCollide(a, b));
+
+    // Total momentum before (should be 0)
+    glm::vec3 p_before = a.mass * a.velocity + b.mass * b.velocity;
+    REQUIRE(p_before.x == Approx(0.0f).margin(1e-6f));
+
+    // Act
+    c.resolveParticleCollision(a, b);
+
+    // Assert: after an elastic head-on collision of equal masses,
+    // they should separate: a should move left, b should move right.
+    REQUIRE(a.velocity.x < 0.0f);
+    REQUIRE(b.velocity.x > 0.0f);
+
+    // Momentum should still be conserved
+    glm::vec3 p_after = a.mass * a.velocity + b.mass * b.velocity;
+    REQUIRE(p_after.x == Approx(p_before.x).margin(1e-6f));
+    REQUIRE(p_after.y == Approx(p_before.y).margin(1e-6f));
+    REQUIRE(p_after.z == Approx(p_before.z).margin(1e-6f));
+
+    // For equal masses and perfectly elastic, speeds should match original magnitude
+    REQUIRE(std::abs(a.velocity.x) == Approx(1.0f).margin(1e-6f));
+    REQUIRE(std::abs(b.velocity.x) == Approx(1.0f).margin(1e-6f));
+}
+
+TEST_CASE("Container grid cells have increasing min/max bounds (xMin < xMax, etc)") {
+    Container c; // default container constructs grid
+
+    // Basic sanity: grid should exist
+    REQUIRE(c.theGrid.theMatrix.size() > 0);
+    REQUIRE(c.theGrid.theMatrix[0].size() > 0);
+    REQUIRE(c.theGrid.theMatrix[0][0].size() > 0);
+
+    const Cell& cell = c.theGrid.theMatrix[0][0][0];
+
+    // These MUST be true for a well-formed axis-aligned cell.
+    REQUIRE(cell.xMin < cell.xMax);
+    REQUIRE(cell.yMin < cell.yMax);
+    REQUIRE(cell.zMin < cell.zMax);
+}
+
+

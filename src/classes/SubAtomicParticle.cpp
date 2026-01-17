@@ -1,9 +1,12 @@
+// src/classes/SubAtomicParticle.cpp
+
 #include "SubAtomicParticle.hpp"
 #include <cmath>
 #include <iostream>
 #include <vector>
 
-SubAtomicParticle::SubAtomicParticle(double mass, std::vector<double> position, std::vector<double>& velocity, double charge, int spin) 
+SubAtomicParticle::SubAtomicParticle(double mass, std::vector<double> position, 
+                                     std::vector<double> velocity, double charge, int spin) 
     : mass_(mass), charge_(charge), spin_(spin)
 {
     position_ = position;
@@ -33,4 +36,9 @@ void SubAtomicParticle::update(double deltaTime)
 void SubAtomicParticle::setForces(std::vector<double>& forces) 
 {
     forces_ = forces;
+}
+
+void SubAtomicParticle::setVelocity(const std::vector<double>& vel) 
+{
+    velocity_ = vel;
 }

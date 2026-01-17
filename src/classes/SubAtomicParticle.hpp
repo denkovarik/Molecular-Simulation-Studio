@@ -1,3 +1,5 @@
+// src/classes/SubAtomicParticle.hpp
+
 #ifndef SUBATOMICPARTICLE_HPP
 #define SUBATOMICPARTICLE_HPP
 
@@ -7,7 +9,8 @@ class SubAtomicParticle
 {
     public:
         // Constructor
-        SubAtomicParticle(double mass, std::vector<double> position, std::vector<double>& velocity, double charge, int spin);
+        SubAtomicParticle(double mass, std::vector<double> position, std::vector<double> velocity, 
+                          double charge, int spin);
 
         // Getters and setters for properties
         double getMass() const;
@@ -17,6 +20,7 @@ class SubAtomicParticle
         std::vector<double> getVelocity() const;
         std::vector<double> getForces() const;
         void setForces(std::vector<double>& force);
+        void setVelocity(const std::vector<double>& vel);
         
         // Update
         void update(double deltaTime);
