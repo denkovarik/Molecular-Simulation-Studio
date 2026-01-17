@@ -18,10 +18,13 @@ apt install libglew-dev
 # OpenGL
 apt-get install freeglut3-dev
 
-# Install Catch2
-cd ~
-git clone -b v2.x https://github.com/catchorg/Catch2.git
+# Install Catch2 (v2.13.10) into /usr/local/include (matches Makefile)
+apt install -y git cmake
+
+cd /tmp
+git clone --depth 1 --branch v2.13.10 https://github.com/catchorg/Catch2.git
 cd Catch2
-mkdir build && cd build
-cmake .. -DBUILD_TESTING=OFF
-make install
+cmake -B build -S . -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+cmake --install build
+
