@@ -36,6 +36,7 @@ Config parseConfig(int argc, char** argv)
 int main(int argc, char** argv) 
 {
     Config config = parseConfig(argc, argv);
+    config.numParticles = 5000;
 
     try 
     {
