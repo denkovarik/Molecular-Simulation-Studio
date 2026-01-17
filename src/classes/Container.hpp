@@ -58,6 +58,7 @@ public:
     void resolveParticleCollision(Particle& a, Particle& b);
     void resolveParticleCollisions();
     void checkWallCollisions();
+    void checkWallCollisions(float dampening);
 };
 
 #endif // CONTAINER_HPP

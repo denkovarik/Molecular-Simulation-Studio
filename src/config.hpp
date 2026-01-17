@@ -39,7 +39,7 @@ struct Config
 
     // Chemistry (LJ)
     bool enable_chemistry = false;
-    float lj_epsilon = 0.5f;
+    float lj_epsilon = 0.452f;
     float lj_sigma = 0.74f;
 
     // Coulomb 
@@ -53,6 +53,9 @@ struct Config
     float electron_mass = 1.0f;  // AU 
     float proton_mass = 1836.0f;  // AU 
     float activation_barrier = 0.1f;
+    
+    bool enable_damping = true;
+    float wall_collision_dampening = 0.99;
     
     // Bonding (Phase 1: united-atom)
     bool enable_bonds = false;
@@ -73,6 +76,28 @@ struct Config
     // Damping along bond axis (stability)
     float bond_axis_damping = 0.05f;
 
+    // QM activation distance (Å)
+    float qm_threshold_dist = 2.0f; 
+    
+    // --- QM surface driving (H2) ---
+    bool enable_qm_surface_h2 = false;
+    bool enable_atom_forces = true;
+    
+    // --- QM bond damping (for settling near equilibrium) ---
+    bool enable_qm_bond_damping = false;
+
+    // Damping coefficient for relative radial motion (units: force / velocity)
+    float qm_bond_damping_gamma = 0.0f;
+
+    bool enable_dynamic_qm = false;  // Compute QM on-the-fly if no PES
+    // For QM params (toy defaults; real from Libint2)
+    std::string basis_set = "STO-3G";
+    bool use_dft = true;
+    
+    float bond_energy = 4.52f;  // Default H2 bond energy in eV; make configurable
+    
+    std::string particleElement = "H";  // Default; set per particle
+    int maxValence = 1;  // For H
 };
 
 #endif // CONFIG_HPP

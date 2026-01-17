@@ -17,7 +17,10 @@ void Particle::applyImpulse(glm::vec3 impulse)
     velocity += impulse / mass;
 }
 
-void Particle::updatePosition(float dt) 
-{
-    position += velocity * dt;
+void Particle::update(float dt) {
+    glm::vec3 new_pos = position * 2.0f - prev_position + acceleration * dt * dt;  // Verlet
+    velocity = (new_pos - position) / dt;
+    prev_position = position;
+    position = new_pos;
+    acceleration = glm::vec3(0.0f);  // Reset after force accum
 }

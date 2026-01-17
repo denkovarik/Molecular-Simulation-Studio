@@ -296,18 +296,20 @@ void Renderer::render(const Simulation& sim)
     if (sim.config.enable_chemistry) 
     {
         const auto& particles = sim.container.particles;
-        for (size_t i = 0; i < particles.size(); ++i) 
+        const auto& bonds = sim.bonds;
+        
+        for(const auto& b : bonds) 
         {
-            for (size_t j = i + 1; j < particles.size(); ++j) 
-            {
-                float d = glm::length(particles[j].position - particles[i].position);
-                if (d < 1.5f) 
-                {
-                    drawBond(particles[i].position, particles[j].position);
-                }
-            }
+            drawBond(particles[b.i].position, particles[b.j].position);
         }
     }
     glfwSwapBuffers(m_window);
     glfwPollEvents();
 }
+
+
+
+
+
+
+

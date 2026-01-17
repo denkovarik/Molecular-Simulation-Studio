@@ -9,7 +9,7 @@ class SubAtomicParticle
 {
     public:
         // Constructor
-        SubAtomicParticle(double mass, std::vector<double> position, std::vector<double>& velocity, 
+        SubAtomicParticle(double mass, std::vector<double> position, std::vector<double> velocity, 
                           double charge, int spin);
 
         // Getters and setters for properties

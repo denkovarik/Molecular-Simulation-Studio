@@ -10,6 +10,18 @@
 #include <vector>
 #include <map>
 #include <string>
+#include "third_party/nlohmann/json.hpp"
+
+class QmSurface1D;
+
+struct Reaction {
+    std::string name;
+    std::vector<std::string> reactants;
+    std::string product;
+    float min_dist;
+    float min_ke;
+    float bond_energy;
+};
 
 struct ElementData 
 { 
@@ -49,11 +61,19 @@ public:
 
     std::map<std::string, ElementData> elementData;  
     void loadElementsFromJSON(const std::string& filename);  
+    std::vector<Reaction> reactions;
+    void loadReactionsFromJSON(const std::string& filename);
+    void setQmSurfaceH2(const QmSurface1D* surf);    
+    void computeChemicalForces(float dt);
+    void enforceValencyAndBreakBonds();
 
 private:
-    void computeChemicalForces(float dt);
     void tryFormBonds();
-
+    const QmSurface1D* qm_surface_h2_ = nullptr;
+    double compute_qm_energy(double r_bohr) const;  // Wrapper for compute_energy
+    glm::vec3 compute_qm_force(const Atom& a, const Atom& b) const;
+    void applyQmSurfaceH2Forces(float dt);
+    void applyQmForces(float dt);
 };
 
 #endif // SIMULATION_HPP

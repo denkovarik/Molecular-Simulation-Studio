@@ -2,20 +2,23 @@
 #include "../physics/Coulomb.hpp"
 #include <glm/gtx/norm.hpp>
 
-Atom::Atom(const std::string& symbol, int Z, float mass, float charge, float vdw_r,
-           float h_k, float h_eq, const glm::vec3& pos, const glm::vec3& vel)
+Atom::Atom(const std::string& symbol, int Z, float mass, float charge, float vdw_r, 
+           float h_k, float h_eq, float morse_De, float morse_a, 
+           const glm::vec3& pos, const glm::vec3& vel)
     : nucleus(mass, vdw_r / 2.0f, charge, pos, vel),
       electrons(),
       elementSymbol(symbol),
       atomicNumber(Z),
       vanDerWaalsRadius(vdw_r),
       harmonic_k(h_k),
-      harmonic_eq(h_eq)
+      harmonic_eq(h_eq),
+      morse_De(morse_De),
+      morse_a(morse_a)
 {}
 
 void Atom::update(float dt) 
 {
-    nucleus.updatePosition(dt);
+    nucleus.update(dt);
     for (auto& e : electrons) 
     {
         e.update(dt);

@@ -6,7 +6,7 @@
 #include <vector>
 
 SubAtomicParticle::SubAtomicParticle(double mass, std::vector<double> position, 
-                                     std::vector<double>& velocity, double charge, int spin) 
+                                     std::vector<double> velocity, double charge, int spin) 
     : mass_(mass), charge_(charge), spin_(spin)
 {
     position_ = position;

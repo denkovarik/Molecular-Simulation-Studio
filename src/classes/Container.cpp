@@ -322,3 +322,49 @@ void Container::checkWallCollisions()
         particles[i].applyImpulse(impulse);
     }
 }
+
+void Container::checkWallCollisions(float dampening) 
+{
+    for(int i = 0; (size_t)i < particles.size(); i++) 
+    {
+        glm::vec3 impulse(0.0f, 0.0f, 0.0f);
+        
+        // X-axis collision
+        if (particles[i].position.x + particles[i].radius > rightWallX) 
+        {
+            particles[i].position.x = rightWallX - particles[i].radius;
+            impulse.x = particles[i].mass * -2.0 * particles[i].velocity.x * dampening;
+        } 
+        else if (particles[i].position.x - particles[i].radius < leftWallX) 
+        {
+            particles[i].position.x = leftWallX + particles[i].radius;
+            impulse.x = particles[i].mass * -2.0 * particles[i].velocity.x * dampening;
+        }
+
+        // Y-axis collision
+        if (particles[i].position.y + particles[i].radius > ceilingY) 
+        {
+            particles[i].position.y = ceilingY - particles[i].radius;
+            impulse.y = particles[i].mass * -2.0 * particles[i].velocity.y * dampening;
+        } 
+        else if (particles[i].position.y - particles[i].radius < floorY) 
+        {
+            particles[i].position.y = floorY + particles[i].radius;
+            impulse.y = particles[i].mass * -2.0 * particles[i].velocity.y * dampening;
+        }
+
+        // Z-axis collision
+        if (particles[i].position.z + particles[i].radius > frontWallZ) 
+        {
+            particles[i].position.z = frontWallZ - particles[i].radius;
+            impulse.z = particles[i].mass * -2.0 * particles[i].velocity.z * dampening;
+        } 
+        else if (particles[i].position.z - particles[i].radius < backWallZ) 
+        {
+            particles[i].position.z = backWallZ + particles[i].radius;
+            impulse.z = particles[i].mass * -2.0 * particles[i].velocity.z * dampening;
+        }   
+        
+        particles[i].applyImpulse(impulse);
+    }
+}
